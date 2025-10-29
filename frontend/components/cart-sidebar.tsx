@@ -7,21 +7,6 @@ interface CartSidebarProps {
   orderData: OrderData
 }
 
-const BAGUETTE_TYPES: Record<string, { name: string; price: number }> = {
-  classic: { name: "Classic Baguette", price: 4.99 },
-  "whole-wheat": { name: "Wholemeal", price: 5.49 },
-  sourdough: { name: "Sourdough", price: 5.99 },
-}
-
-const FILLINGS: Record<string, { name: string; price: number }> = {
-  butter: { name: "Butter", price: 0.5 },
-  cheese: { name: "Cheese", price: 1.0 },
-  ham: { name: "Ham", price: 1.5 },
-  salami: { name: "Salami", price: 1.5 },
-  vegetables: { name: "Vegetables", price: 1.0 },
-  pesto: { name: "Pesto", price: 1.25 },
-}
-
 const DRINKS: Record<string, { name: string; price: number }> = {
   water: { name: "Bottled Water", price: 2.0 },
   cola: { name: "Cola", price: 2.5 },
@@ -32,16 +17,18 @@ const DRINKS: Record<string, { name: string; price: number }> = {
 }
 
 const EXTRAS: Record<string, { name: string; price: number }> = {
-  "butter-packet": { name: "Butter Packet", price: 0.5 },
   jam: { name: "Jam", price: 1.0 },
-  "cheese-plate": { name: "Cheese Plate", price: 4.0 },
-  charcuterie: { name: "Charcuterie Board", price: 6.0 },
-  dessert: { name: "Pastry Dessert", price: 3.5 },
-  napkins: { name: "Extra Napkins", price: 0 },
+  dessert: { name: "Dessert", price: 3.5 },
 }
 
 function calculateFoodItemPrice(item: FoodItem): number {
   let price = 0
+  price += item.price as number;
+  item.options.forEach((option: any) => {
+    option.data.forEach((data: { price: number }) => {
+      price += data.price;
+    });
+  });
   return price
 }
 
@@ -49,7 +36,7 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
   const calculateTotal = () => {
     let total = 0
 
-    // Baguettes
+    // Food Items
     orderData.items.forEach((item) => {
       total += calculateFoodItemPrice(item)
     })
@@ -61,15 +48,14 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
     })
 
     // Extras
-    // orderData.extras.forEach((id) => {
-    //   const extra = EXTRAS[id]
-    //   if (extra) total += extra.price
-    // })
-
+    orderData.extras.forEach((extra) => {
+      const extraInfo = EXTRAS[extra.extraId]
+      if (extraInfo) total += extraInfo.price * extra.quantity
+    })
     // Delivery fee (only if there are items)
-    if (orderData.items.length > 0) {
-      total += 2.0
-    }
+    // if (orderData.items.length > 0) {
+    //   total += 2.0
+    // }
 
     return total
   }
@@ -90,16 +76,26 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
               <div className="space-y-2">
                 <p className="font-semibold text-sm text-foreground">Items ({orderData.items.length})</p>
                 {orderData.items.map((item, index) => (
-                  <div key={item.id} className="text-xs bg-white/50 p-2 rounded border border-primary/20">
+                    <div key={`${item.id}-${index}`} className="text-xs bg-white/50 p-2 rounded border border-primary/20">
                     <p className="font-medium text-foreground">#{index + 1}</p>
-                    <p className="text-muted-foreground">{item.id}</p>
-                    {/* {item.filling && item.filling.length > 0 && (
-                      <p className="text-muted-foreground text-xs">
-                        +{(item as any).filling.map((f: string) => FILLINGS[f]?.name).join(", ")}
-                      </p>
-                    )} */}
+                    <p>{item.name}</p>
+                    {item.options && item.options.length > 0 && (
+                      <>
+                      {item.options.map((option: any) => (
+                        <p className="text-muted-foreground" key={option.id}>
+                          {option.name}:
+                          {option.data.map((data: any, index: number) => (
+                          <span className="text-muted-foreground ml-1" key={index}>
+                            {data.name}
+                            {index < option.data.length - 1 && ","}
+                          </span>
+                          ))}
+                        </p>
+                      ))}
+                      </>
+                    )}
                     <p className="font-semibold text-primary mt-1">£{calculateFoodItemPrice(item).toFixed(2)}</p>
-                  </div>
+                    </div>
                 ))}
               </div>
             )}
@@ -125,22 +121,31 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
             {orderData.extras.length > 0 && (
               <div className="space-y-2 border-t border-primary/20 pt-2">
                 <p className="font-semibold text-sm text-foreground">Extras</p>
-
+                {orderData.extras.map((extra) => (
+                  <div key={extra.id} className="text-xs flex justify-between items-center">
+                    <span className="text-muted-foreground">
+                      {EXTRAS[extra.extraId]?.name} x{extra.quantity}
+                    </span>
+                    <span className="font-semibold text-primary">
+                      £{((EXTRAS[extra.extraId]?.price || 0) * extra.quantity).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
 
             {/* Delivery Fee */}
-            {orderData.items.length > 0 && (
+            {/* {orderData.items.length > 0 && (
               <div className="border-t border-primary/20 pt-2 flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Delivery Fee</span>
                 <span className="font-semibold text-primary">£2.00</span>
               </div>
-            )}
+            )} */}
 
             {/* Total */}
             <div className="border-t-2 border-primary pt-3 mt-3">
               <div className="flex justify-between items-center">
-                <span className="font-bold text-foreground">Total</span>
+                <span className="font-bold text-foreground">Subtotal</span>
                 <span className="text-2xl font-bold text-primary">£{calculateTotal().toFixed(2)}</span>
               </div>
             </div>

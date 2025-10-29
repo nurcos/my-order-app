@@ -14,7 +14,9 @@ import Image from "next/image"
 
 export interface FoodItem {
   id: string
+  name: string
   options: Record<string, any>
+  price: number
 }
 
 export interface DrinkItem {
@@ -25,8 +27,10 @@ export interface DrinkItem {
 
 export interface ExtraItem {
   id: string
+  name?: string
   extraId: string
   quantity: number
+  price?: number
 }
 
 export interface OrderData {
@@ -53,11 +57,10 @@ export interface OrderData {
 
 const STEPS = [
   { number: 1, title: "Food" },
-  { number: 2, title: "Extras" },
+  { number: 2, title: "Drinks" },
   { number: 3, title: "Details" },
   { number: 4, title: "Review" },
   { number: 5, title: "Payment" },
-  { number: 6, title: "Confirmed" },
 ]
 
 interface OrderingWizardProps {
@@ -84,12 +87,14 @@ export function OrderingWizard({ selectedRestaurant }: OrderingWizardProps) {
   const handleNext = () => {
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1)
+      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
+      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
@@ -135,7 +140,7 @@ export function OrderingWizard({ selectedRestaurant }: OrderingWizardProps) {
                   Ordering from: <span className="font-semibold text-primary">{selectedRestaurant}</span>
                 </p>
               )}
-              <p className="text-muted-foreground text-lg">Authentic French Baguettes, Delivered to Your Door</p>
+              <p className="text-muted-foreground text-lg">Strapline here</p>
             </div>
 
             {/* Progress Steps */}

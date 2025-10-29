@@ -107,23 +107,79 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
   const [currentItem, setCurrentItem] = useState<FoodItem | null>(null)
 
   const handleSelectItem = (itemId: string) => {
+    if(currentItem) {
+      // reset options selections when changing item
+      currentItem.options.forEach((option: any) => {
+        option.data.forEach((data: any) => {
+          data.selected = false
+        })
+      })
+    }
+
     const newItem: FoodItem = ITEMS.find((item) => item.id === itemId) as FoodItem
     // update local selection so UI reflects the change
+
     setCurrentItem(newItem)
+    
     // also update parent order data if needed (this adds the item to items array)
     // onUpdate({ items: [...orderData.items, newItem] })
   }
 
+  const handleFillingToggle = (dataId: string, optionId: string) => {
+    if (!currentItem) return
+
+    // Here you would update the currentItem's options based on the selected optionId
+    // For simplicity, this example does not track selected options
+    const options = currentItem.options.find((opt: any) => opt.id === optionId)
+    if (options) {
+      const data = options.data.find((d: any) => d.id === dataId)
+      if (data) {
+        data.selected = !data.selected
+        setCurrentItem({ ...currentItem })
+      }
+    }
+  }
+
   const handleAddItem = () => {
     if (currentItem) {
-      onUpdate({ items: [...orderData.items, currentItem] })
+      const selectedOptions = currentItem.options.map((option: any) => ({
+        ...option,
+        data: option.data.filter((data: any) => data.selected),
+      }))
+      onUpdate({ items: [...orderData.items, { ...currentItem, options: selectedOptions }] })
+      console.log(currentItem);
     }
+
+    // Remove all options other than those selected
+    if (currentItem) {
+      // Reset options after adding the item
+      currentItem.options.forEach((option: any) => {
+          option.data.forEach((data: any) => {
+          data.selected = false
+        })
+      })
+    }
+
+    
+    
     // Reset the current selection after adding the item
     setCurrentItem(null)
   }
 
   const calculatePrice = () => {
     let price = 0
+    if (currentItem && currentItem.price) {
+      price += currentItem.price
+      if(currentItem.options) {
+        currentItem.options.forEach((option: any) => {
+          option.data.forEach((data: any) => {
+            if (data.selected) {
+              price += data.price
+            }
+          })
+        })
+      }
+    }
 
     return price.toFixed(2)
   }
@@ -154,25 +210,25 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
 
       {currentItem && currentItem.options.map((option: any) => (
         <div key={option.id}>
-          <h3 className="text-xl font-bold text-foreground mb-4">{option.name}</h3>
+          <h3 className="text-xl font-bold mb-4">{option.name}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {option.data.map((option: any) => (
+            {option.data.map((data: any) => (
               <Button
-                key={option.id}
-                // onClick={() => handleFillingToggle(option.id)}
+                key={data.id}
+                onClick={() => handleFillingToggle(data.id, option.id)}
                 // variant={c.data.includes(option.id) ? "default" : "outline"}
-                // className={`py-6 justify-start ${
-                //   currentItem.options.filling.includes(option.id) ? "bg-accent text-accent-foreground" : ""
-                // }`}
+                className={`bg-primary/5 border-primary text-primary py-6 justify-start shadow-lg ${
+                  data.selected ? "border-2" : ""
+                }`}
               >
                 <input
                   type="checkbox"
-                  // checked={currentItem.filling.includes(option.id)}
+                  checked={data.selected || false}
                   onChange={() => {}}
                   className="mr-3"
                 />
-                <span className="flex-1 text-left">{option.name}</span>
-                {/* <span className="text-sm">+£{option.price.toFixed(2)}</span> */}
+                <span className="flex-1 text-left">{data.name}</span>
+                <span className="text-sm">+£{data.price.toFixed(2)}</span>
               </Button>
             ))}
           </div>
@@ -180,7 +236,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
       ))}
 
       <div className="bg-secondary/30 p-4 rounded-lg border border-secondary">
-        <p className="text-sm text-muted-foreground">Subtotal for this baguette:</p>
+        <p className="text-sm text-muted-foreground">Subtotal for this item:</p>
         <p className="text-3xl font-bold text-primary mb-4">£{calculatePrice()}</p>
         <Button
           onClick={handleAddItem}

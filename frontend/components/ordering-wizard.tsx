@@ -8,9 +8,19 @@ import { StepTwo } from "./steps/step-two"
 import { StepThree } from "./steps/step-three"
 import { StepFour } from "./steps/step-four"
 import { StepFive } from "./steps/step-five"
-import { StepSix } from "./steps/step-six"
 import { CartSidebar } from "./cart-sidebar"
 import Image from "next/image"
+import { OrderComplete } from "./steps/order-complete"
+
+export interface Restaurant {
+  id: string
+  name: string
+  strapline?: string
+  location: string
+  rating: number
+  deliveryTime: string
+  minOrder: number
+}
 
 export interface FoodItem {
   id: string
@@ -20,8 +30,10 @@ export interface FoodItem {
 }
 
 export interface DrinkItem {
+  name: string
   id: string
   drinkId: string
+  price?: number
   quantity: number
 }
 
@@ -34,6 +46,8 @@ export interface ExtraItem {
 }
 
 export interface OrderData {
+  restaurant: Restaurant[]
+
   // Step 1: Multiple items
   items: FoodItem[]
 
@@ -64,12 +78,14 @@ const STEPS = [
 ]
 
 interface OrderingWizardProps {
-  selectedRestaurant?: string | null
+  selectedRestaurant?: Restaurant | null
+  handleBack: () => void
 }
 
-export function OrderingWizard({ selectedRestaurant }: OrderingWizardProps) {
+export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizardProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [orderData, setOrderData] = useState<OrderData>({
+    restaurant: [],
     items: [],
     drinks: [],
     extras: [],
@@ -84,10 +100,26 @@ export function OrderingWizard({ selectedRestaurant }: OrderingWizardProps) {
     total: 0,
   })
 
+  const resetOrderData = () => {
+    setOrderData((prev) => ({
+      ...prev,
+      items: [],
+      drinks: [],
+      extras: [],
+      total: 0,
+    }))
+  }
+
   const handleNext = () => {
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1)
       window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+
+    if(currentStep === 6){
+      // Finalize order here if needed
+      resetOrderData();
+      setCurrentStep(1);
     }
   }
 
@@ -113,9 +145,19 @@ export function OrderingWizard({ selectedRestaurant }: OrderingWizardProps) {
       case 4:
         return <StepFour orderData={orderData} />
       case 5:
-        return <StepFive orderData={orderData} />
+        return (
+          <>
+          <StepFive orderData={orderData} />
+          <Button
+            onClick={handleNext}
+            className="w-full py-6 text-lg bg-primary hover:bg-accent text-primary-foreground font-bold"
+          >
+            Complete Payment
+          </Button>
+        </>
+        )
       case 6:
-        return <StepSix orderData={orderData} />
+        return <OrderComplete orderData={orderData} />
       default:
         return null
     }
@@ -137,10 +179,10 @@ export function OrderingWizard({ selectedRestaurant }: OrderingWizardProps) {
               />
               {selectedRestaurant && (
                 <p className="text-muted-foreground text-lg">
-                  Ordering from: <span className="font-semibold text-primary">{selectedRestaurant}</span>
+                  Ordering from: <span className="font-semibold text-primary">{selectedRestaurant.name}</span>
                 </p>
               )}
-              <p className="text-muted-foreground text-lg">Strapline here</p>
+              <p className="text-muted-foreground text-lg">{selectedRestaurant?.strapline}</p>
             </div>
 
             {/* Progress Steps */}
@@ -175,30 +217,33 @@ export function OrderingWizard({ selectedRestaurant }: OrderingWizardProps) {
             <Card className="p-8 mb-8 shadow-lg">{renderStep()}</Card>
 
             {/* Navigation Buttons */}
-            {currentStep !== 6 && (
+            
               <div className="flex justify-between gap-4">
                 <Button
-                  onClick={handlePrevious}
-                  disabled={currentStep === 1}
+                  onClick={currentStep === 1 ? handleBack : handlePrevious}
+                  disabled={currentStep === 1 && !handleBack}
                   variant="outline"
                   className="px-8 bg-transparent"
                 >
                   ← Back
                 </Button>
+                {currentStep < 5  && (
                 <Button
                   onClick={handleNext}
-                  disabled={currentStep === 5}
                   className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Next →
                 </Button>
+                )}
               </div>
-            )}
+
           </div>
 
-          <div className="lg:col-span-1">
-            <CartSidebar orderData={orderData} />
-          </div>
+          {currentStep < 6 && (
+            <div className="lg:col-span-1">
+              <CartSidebar orderData={orderData} />
+            </div>
+          )}
         </div>
       </div>
     </div>

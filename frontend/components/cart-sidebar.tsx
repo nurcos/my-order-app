@@ -7,20 +7,6 @@ interface CartSidebarProps {
   orderData: OrderData
 }
 
-const DRINKS: Record<string, { name: string; price: number }> = {
-  water: { name: "Bottled Water", price: 2.0 },
-  cola: { name: "Cola", price: 2.5 },
-  lemonade: { name: "Lemonade", price: 2.5 },
-  "orange-juice": { name: "Orange Juice", price: 3.0 },
-  coffee: { name: "Coffee", price: 3.5 },
-  wine: { name: "Red Wine", price: 8.0 },
-}
-
-const EXTRAS: Record<string, { name: string; price: number }> = {
-  jam: { name: "Jam", price: 1.0 },
-  dessert: { name: "Dessert", price: 3.5 },
-}
-
 function calculateFoodItemPrice(item: FoodItem): number {
   let price = 0
   price += item.price as number;
@@ -43,14 +29,14 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
 
     // Drinks
     orderData.drinks.forEach((drink) => {
-      const drinkInfo = DRINKS[drink.drinkId]
-      if (drinkInfo) total += drinkInfo.price * drink.quantity
+      const drinkInfo = orderData.drinks.find(d => d.id === drink.id)
+      if (drinkInfo && drinkInfo.price) total += drinkInfo.price * drink.quantity
     })
 
     // Extras
     orderData.extras.forEach((extra) => {
-      const extraInfo = EXTRAS[extra.extraId]
-      if (extraInfo) total += extraInfo.price * extra.quantity
+      const extraInfo = orderData.extras.find(e => e.id === extra.id)
+      if (extraInfo && extraInfo.price) total += extraInfo.price * extra.quantity
     })
     // Delivery fee (only if there are items)
     // if (orderData.items.length > 0) {
@@ -85,11 +71,12 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
                         <p className="text-muted-foreground" key={option.id}>
                           {option.name}:
                           {option.data.map((data: any, index: number) => (
-                          <span className="text-muted-foreground ml-1" key={index}>
-                            {data.name}
-                            {index < option.data.length - 1 && ","}
-                          </span>
+                            <span className="text-muted-foreground ml-1" key={index}>
+                              {data.name}
+                              {index < option.data.length - 1 && ","}
+                            </span>
                           ))}
+                          { option.data.length === 0 && <span className="text-muted-foreground ml-1">None</span> }
                         </p>
                       ))}
                       </>
@@ -107,10 +94,10 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
                 {orderData.drinks.map((drink) => (
                   <div key={drink.id} className="text-xs flex justify-between items-center">
                     <span className="text-muted-foreground">
-                      {DRINKS[drink.drinkId]?.name} x{drink.quantity}
+                      {drink.name} x{drink.quantity}
                     </span>
                     <span className="font-semibold text-primary">
-                      £{((DRINKS[drink.drinkId]?.price || 0) * drink.quantity).toFixed(2)}
+                      £{((drink.price || 0) * drink.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -124,10 +111,10 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
                 {orderData.extras.map((extra) => (
                   <div key={extra.id} className="text-xs flex justify-between items-center">
                     <span className="text-muted-foreground">
-                      {EXTRAS[extra.extraId]?.name} x{extra.quantity}
+                      {extra.name} x{extra.quantity}
                     </span>
                     <span className="font-semibold text-primary">
-                      £{((EXTRAS[extra.extraId]?.price || 0) * extra.quantity).toFixed(2)}
+                      £{((extra.price || 0) * extra.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}

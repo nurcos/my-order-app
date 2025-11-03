@@ -41,9 +41,11 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
     } else {
       // Add new drink
       const newDrink: DrinkItem = {
+        name: DRINKS.find(d => d.id === drinkId)?.name || "",
         id: `drink-${Date.now()}`,
         drinkId,
         quantity: 1,
+        price: DRINKS.find(d => d.id === drinkId)?.price || 0,
       }
       onUpdate({ drinks: [...orderData.drinks, newDrink] })
     }
@@ -68,9 +70,11 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
     } else {
       // Add new extra
       const newExtra: ExtraItem = {
+        name: EXTRAS.find(e => e.id === extraId)?.name || "",
         id: `extra-${Date.now()}`,
         extraId,
         quantity: 1,
+        price: EXTRAS.find(e => e.id === extraId)?.price || 0,
       }
       onUpdate({ extras: [...orderData.extras, newExtra] })
     }

@@ -3,18 +3,10 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Image from "next/image"
-
-interface Restaurant {
-  id: string
-  name: string
-  location: string
-  rating: number
-  deliveryTime: string
-  minOrder: number
-}
+import type { Restaurant } from "./ordering-wizard"
 
 interface RestaurantSelectionProps {
-  onSelectRestaurant: (restaurantId: string) => void
+  onSelectRestaurant: (restaurant: Restaurant) => void
   onBack: () => void
 }
 
@@ -22,6 +14,7 @@ const RESTAURANTS: Restaurant[] = [
   {
     id: "watton-hot-baguette",
     name: "The Watton Hot Baguette",
+    strapline: "Handcrafted in Watton daily with the finest ingredients",
     location: "Watton, Norfolk",
     rating: 5,
     deliveryTime: "25-35 mins",
@@ -51,7 +44,7 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
             <Card
               key={restaurant.id}
               className="p-6 hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-primary"
-              onClick={() => onSelectRestaurant(restaurant.id)}
+              onClick={() => onSelectRestaurant(restaurant)}
             >
               <div className="space-y-4">
                 <div className="flex justify-between">
@@ -82,7 +75,7 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
                 </div>
 
                 <Button
-                  onClick={() => onSelectRestaurant(restaurant.id)}
+                  onClick={() => onSelectRestaurant(restaurant)}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                 >
                   Order from Here

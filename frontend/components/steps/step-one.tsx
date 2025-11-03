@@ -147,7 +147,6 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
         data: option.data.filter((data: any) => data.selected),
       }))
       onUpdate({ items: [...orderData.items, { ...currentItem, options: selectedOptions }] })
-      console.log(currentItem);
     }
 
     // Remove all options other than those selected

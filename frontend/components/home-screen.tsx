@@ -18,11 +18,11 @@ export function HomeScreen({ onStartOrder }: HomeScreenProps) {
               <Image
                 src="/img/logo.png"
                 alt="Baguette"
-                width={200}
-                height={200}
+                width={150}
+                height={150}
                 className="mx-auto"
               />
-              <p className="text-xl text-primary/70">Authentic French Baguettes, Delivered to Your Door</p>
+              <p className="text-xl text-primary/70">Authentic British Food, Delivered to Your Door</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -34,7 +34,7 @@ export function HomeScreen({ onStartOrder }: HomeScreenProps) {
               <div className="space-y-2">
                 <div className="text-3xl">🎨</div>
                 <h3 className="font-semibold text-primary">Bespoke Selection</h3>
-                <p className="text-sm text-primary/70">Customise your perfect baguette</p>
+                <p className="text-sm text-primary/70">Customise your perfect order</p>
               </div>
               <div className="space-y-2">
                 <div className="text-3xl">✨</div>
@@ -43,7 +43,6 @@ export function HomeScreen({ onStartOrder }: HomeScreenProps) {
               </div>
             </div>
 
-            {/* CTA Button */}
             <Button
               onClick={onStartOrder}
               className="w-full py-8 text-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all hover:shadow-lg"

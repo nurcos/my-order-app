@@ -8,7 +8,7 @@ interface StepSixProps {
   orderData: OrderData
 }
 
-export function StepSix({ orderData }: StepSixProps) {
+export function OrderComplete({ orderData }: StepSixProps) {
   return (
     <div className="text-center space-y-8">
       <div className="text-6xl mb-4">✅</div>
@@ -51,7 +51,7 @@ export function StepSix({ orderData }: StepSixProps) {
       </Card>
 
       <div className="space-y-3">
-        <p className="text-muted-foreground">Your fresh baguette is being prepared and will be delivered soon!</p>
+        <p className="text-muted-foreground">Your order is being prepared and will be delivered soon!</p>
         <Button
           onClick={() => window.location.reload()}
           className="w-full py-6 text-lg bg-primary hover:bg-accent text-primary-foreground font-bold"

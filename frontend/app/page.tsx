@@ -3,17 +3,18 @@ import { useState } from "react"
 import { OrderingWizard } from "@/components/ordering-wizard"
 import { HomeScreen } from "@/components/home-screen"
 import { RestaurantSelection } from "@/components/restaurant-selection"
+import type { Restaurant } from "@/components/ordering-wizard"
 
 export default function Home() {
   const [screen, setScreen] = useState<"home" | "restaurants" | "ordering">("home")
-  const [selectedRestaurant, setSelectedRestaurant] = useState<string | null>(null)
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null)
 
   const handleStartOrder = () => {
     setScreen("restaurants")
   }
 
-  const handleSelectRestaurant = (restaurantId: string) => {
-    setSelectedRestaurant(restaurantId)
+  const handleSelectRestaurant = (restaurant: Restaurant) => {
+    setSelectedRestaurant(restaurant)
     setScreen("ordering")
   }
 
@@ -36,7 +37,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background to-blue-50">
-      <OrderingWizard selectedRestaurant={selectedRestaurant} />
+      <OrderingWizard handleBack={handleBackToRestaurants} selectedRestaurant={selectedRestaurant} />
     </main>
   )
 }

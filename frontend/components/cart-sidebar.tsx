@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 
 interface CartSidebarProps {
   orderData: OrderData
+  removeItemFromOrder: (itemIndex: number) => void
 }
 
 function calculateFoodItemPrice(item: FoodItem): number {
@@ -18,7 +19,7 @@ function calculateFoodItemPrice(item: FoodItem): number {
   return price
 }
 
-export function CartSidebar({ orderData }: CartSidebarProps) {
+export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps) {
   const calculateTotal = () => {
     let total = 0
 
@@ -62,26 +63,34 @@ export function CartSidebar({ orderData }: CartSidebarProps) {
               <div className="space-y-2">
                 <p className="font-semibold text-sm text-foreground">Items ({orderData.items.length})</p>
                 {orderData.items.map((item, index) => (
-                    <div key={`${item.id}-${index}`} className="text-xs bg-white/50 p-2 rounded border border-primary/20">
-                    <p className="font-medium text-foreground">#{index + 1}</p>
-                    <p>{item.name}</p>
-                    {item.options && item.options.length > 0 && (
-                      <>
-                      {item.options.map((option: any) => (
-                        <p className="text-muted-foreground" key={option.id}>
-                          {option.name}:
-                          {option.data.map((data: any, index: number) => (
-                            <span className="text-muted-foreground ml-1" key={index}>
-                              {data.name}
-                              {index < option.data.length - 1 && ","}
-                            </span>
-                          ))}
-                          { option.data.length === 0 && <span className="text-muted-foreground ml-1">None</span> }
-                        </p>
-                      ))}
-                      </>
-                    )}
-                    <p className="font-semibold text-primary mt-1">£{calculateFoodItemPrice(item).toFixed(2)}</p>
+                    <div key={`${item.id}-${index}`} className="text-xs bg-white/50 p-2 rounded border border-primary/20 relative">
+                      <p className="font-medium text-foreground">#{index + 1}</p>
+                      <p>{item.name}</p>
+                      {item.options && item.options.length > 0 && (
+                        <>
+                        {item.options.map((option: any) => (
+                          <p className="text-muted-foreground" key={option.id}>
+                            {option.name}:
+                            {option.data.map((data: any, index: number) => (
+                              <span className="text-muted-foreground ml-1" key={index}>
+                                {data.name}
+                                {index < option.data.length - 1 && ","}
+                              </span>
+                            ))}
+                            { option.data.length === 0 && <span className="text-muted-foreground ml-1">None</span> }
+                          </p>
+                        ))}
+                        </>
+                      )}
+                      <p className="font-semibold text-primary mt-1">£{calculateFoodItemPrice(item).toFixed(2)}</p>
+                        <button
+                          className="absolute top-0 right-2 text-xl text-red-500 hover:underline"
+                          onClick={() => {
+                            removeItemFromOrder(index)
+                          }}
+                        >
+                          ×
+                        </button>
                     </div>
                 ))}
               </div>

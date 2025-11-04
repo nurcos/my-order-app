@@ -4,6 +4,7 @@ import type { OrderData, FoodItem } from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import Image from "next/image"
 
 interface StepOneProps {
   orderData: OrderData
@@ -105,6 +106,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
   // track the currently selected item locally so calling handleSelectItem
   // programmatically will also update the UI
   const [currentItem, setCurrentItem] = useState<FoodItem | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
 
   const handleSelectItem = (itemId: string) => {
     if(currentItem) {
@@ -147,22 +149,23 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
         data: option.data.filter((data: any) => data.selected),
       }))
       onUpdate({ items: [...orderData.items, { ...currentItem, options: selectedOptions }] })
-    }
 
-    // Remove all options other than those selected
-    if (currentItem) {
-      // Reset options after adding the item
-      currentItem.options.forEach((option: any) => {
-          option.data.forEach((data: any) => {
-          data.selected = false
+      // Remove all options other than those selected
+      if (currentItem) {
+        // Reset options after adding the item
+        currentItem.options.forEach((option: any) => {
+            option.data.forEach((data: any) => {
+            data.selected = false
+          })
         })
-      })
-    }
+      }
 
-    
-    
-    // Reset the current selection after adding the item
-    setCurrentItem(null)
+      // Reset the current selection after adding the item
+      setCurrentItem(null)
+
+      setIsAdding(true)
+      setTimeout(() => setIsAdding(false), 1000)
+    }
   }
 
   const calculatePrice = () => {
@@ -237,12 +240,26 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
       <div className="bg-secondary/30 p-4 rounded-lg border border-secondary">
         <p className="text-sm text-muted-foreground">Subtotal for this item:</p>
         <p className="text-3xl font-bold text-primary mb-4">£{calculatePrice()}</p>
-        <Button
-          onClick={handleAddItem}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6"
-        >
-          Add To Order
-        </Button>
+        <div className="relative flex justify-center items-center">
+          <Button
+            onClick={handleAddItem}
+            disabled={!currentItem}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6"
+          >
+            Add To Order
+          </Button>
+          <Image 
+            src="/img/food.png" 
+            width={80} 
+            height={80} 
+            alt="Food Image" 
+            className={`z-50 absolute transition-transform transition-opacity duration-1000 pointer-events-none`}
+            style={{
+              transform: isAdding ? "translateY(25vh) scale(0)" : "",
+              opacity: isAdding ? 0.4 : 0,
+            }}
+          />
+        </div>
       </div>
     </div>
   )

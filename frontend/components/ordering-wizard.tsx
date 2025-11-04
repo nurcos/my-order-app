@@ -100,6 +100,14 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
     total: 0,
   })
 
+  const removeItemFromOrder = (itemIndex: number) => {
+    setOrderData((prev) => {
+      const updatedItems = [...prev.items]
+      updatedItems.splice(itemIndex, 1)
+      return { ...prev, items: updatedItems }
+    })
+  }
+
   const resetOrderData = () => {
     setOrderData((prev) => ({
       ...prev,
@@ -171,10 +179,10 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
           <div className="lg:col-span-3">
             <div className="text-center mb-12">
               <Image
-                src="/img/logo.png"
+                src="/img/new-logo.png"
                 alt="MyOrder App"
-                width={120}
-                height={120}
+                width={100}
+                height={100}
                 className="mx-auto mb-4"
               />
               {selectedRestaurant && (
@@ -236,12 +244,11 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
                 </Button>
                 )}
               </div>
-
           </div>
 
-          {currentStep < 6 && (
+          {currentStep < 6 && currentStep !== 4 && (
             <div className="lg:col-span-1">
-              <CartSidebar orderData={orderData} />
+              <CartSidebar removeItemFromOrder={removeItemFromOrder} orderData={orderData} />
             </div>
           )}
         </div>

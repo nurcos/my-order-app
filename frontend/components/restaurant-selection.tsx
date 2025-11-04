@@ -29,10 +29,10 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
         {/* Header */}
         <div className="text-center mb-12">
           <Image
-            src="/img/logo.png"
+            src="/img/new-logo.png"
             alt="MyOrder App"
-            width={120}
-            height={120}
+            width={100}
+            height={100}
             className="mx-auto mb-4"
           />
           <p className="text-muted-foreground text-lg">Select Your Local Restaurant</p>
@@ -47,7 +47,7 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
               onClick={() => onSelectRestaurant(restaurant)}
             >
               <div className="space-y-4">
-                <div className="flex justify-between">
+                <div className="flex gap-1 justify-between">
                   <div>
                     <h3 className="text-xl font-bold text-primary">{restaurant.name}</h3>
                     <p className="text-sm text-muted-foreground">{restaurant.location}</p>
@@ -55,8 +55,8 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
                   <Image
                     src="/img/restaurants/twhb-logo.png"
                     alt={restaurant.name}
-                    width={80}
-                    height={80}
+                    width={60}
+                    height={60}
                   />
                 </div>
 

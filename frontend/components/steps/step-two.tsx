@@ -98,7 +98,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
               <Card
                 key={drink.id}
                 className={`p-4 border-2 transition-all ${
-                  drinkInOrder ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                  drinkInOrder ? "border-[#bb2f39] bg-[#bb2f39]/5" : "border-border hover:border-primary/50"
                 }`}
               >
                 <div className="flex justify-between items-start mb-3">
@@ -118,7 +118,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
                       onClick={() => handleAddDrink(drink.id)}
                       variant="default"
                       size="sm"
-                      className="flex-1 bg-primary hover:bg-primary/90"
+                      className="flex-1 bg-[#bb2f39] hover:bg-primary/90 border-black border-2"
                     >
                       +
                     </Button>
@@ -127,7 +127,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
                   <Button
                     onClick={() => handleAddDrink(drink.id)}
                     variant="outline"
-                    className="w-full border-primary text-primary hover:bg-primary/10"
+                    className="w-full border-black border-2 bg-[#bb2f39] text-white hover:bg-[#bb2f39]/10"
                   >
                     Add to Order
                   </Button>
@@ -147,7 +147,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
                 <Card
                   key={extra.id}
                   className={`p-4 border-2 transition-all ${
-                    extraInOrder ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    extraInOrder ? "border-[#bb2f39] bg-[#bb2f39]/5" : "border-border hover:border-primary/50"
                   }`}
                 >
                   <div className="flex justify-between items-start mb-3">
@@ -167,7 +167,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
                         onClick={() => handleAddExtra(extra.id)}
                         variant="default"
                         size="sm"
-                        className="flex-1 bg-primary hover:bg-primary/90"
+                        className="flex-1 bg-[#bb2f39] text-white border border-black border-2"
                       >
                         +
                       </Button>
@@ -176,7 +176,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
                     <Button
                       onClick={() => handleAddExtra(extra.id)}
                       variant="outline"
-                      className="w-full border-primary text-primary hover:bg-primary/10"
+                      className="w-full border-black border-2 bg-[#bb2f39] text-white hover:bg-[#bb2f39]/10"
                     >
                       Add to Order
                     </Button>

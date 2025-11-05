@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'MyOrder App',
-  description: 'Ordering Authentic British Food Made Easy',
+  description: 'Traditional Taste Made Easy',
 }
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans antialiased mt-4`}>
+      <body className={`font-sans antialiased pt-[4rem] bg-[#19315f]`}>
         {children}
         <Analytics />
       </body>

@@ -10,47 +10,74 @@ interface HomeScreenProps {
 
 export function HomeScreen({ onStartOrder }: HomeScreenProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 flex items-center justify-center px-4">
+    <div className="flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
-        <Card className="p-12 shadow-2xl border-0">
+        <Card className="p-8 shadow-2xl border-1 border-white bg-white text-primary">
           <div className="text-center space-y-8">
             <div className="space-y-4">
               <Image
                 src="/img/new-logo.png"
                 alt="Baguette"
-                width={150}
-                height={150}
+                width={120}
+                height={120}
                 className="mx-auto"
               />
-              <p className="text-xl text-primary/70">Authentic British Food, Delivered to Your Door</p>
+              <div>
+                <p className="text-xl">Traditional Taste</p>
+                <p className="text-xl">Delivered to Your Door</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <div className="text-3xl">⚡</div>
-                <h3 className="font-semibold text-primary">Swift Delivery</h3>
-                <p className="text-sm text-primary/70">30 minutes or less, guaranteed</p>
+                <Image
+                  src="/img/icons/bolt.png"
+                  alt="Fast Delivery"
+                  width={60}
+                  height={60}
+                  className="mx-auto"
+                />
+                <div>
+                  <h3 className="font-semibold">Swift Delivery</h3>
+                  <p className="text-sm">30 minutes or less, guaranteed</p>
+                </div>
               </div>
               <div className="space-y-2">
-                <div className="text-3xl">🎨</div>
-                <h3 className="font-semibold text-primary">Bespoke Selection</h3>
-                <p className="text-sm text-primary/70">Customise your perfect order</p>
+                <Image
+                  src="/img/icons/palette.png"
+                  alt="Fast Delivery"
+                  width={60}
+                  height={60}
+                  className="mx-auto"
+                />
+                <div>
+                  <h3 className="font-semibold">Bespoke Selection</h3>
+                  <p className="text-sm">Customise your perfect order</p>
+                </div>
               </div>
               <div className="space-y-2">
-                <div className="text-3xl">✨</div>
-                <h3 className="font-semibold text-primary">Simple checkout</h3>
-                <p className="text-sm text-primary/70">No account required</p>
+                <Image
+                  src="/img/icons/stars.png"
+                  alt="Fast Delivery"
+                  width={60}
+                  height={60}
+                  className="mx-auto"
+                />
+                <div>
+                  <h3 className="font-semibold">Simple checkout</h3>
+                  <p className="text-sm">No account required</p>
+                </div>
               </div>
             </div>
 
             <Button
               onClick={onStartOrder}
-              className="w-full py-8 text-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-all hover:shadow-lg"
+              className="w-full py-8 text-xl font-bold bg-[#bb2f39] text-white border border-black border-2 rounded-lg transition-all hover:shadow-lg"
             >
               Begin Your Order
             </Button>
 
-            <p className="text-sm text-primary/60">
+            <p className="text-sm">
               No registration required • Secure checkout
             </p>
           </div>

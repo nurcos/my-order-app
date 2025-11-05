@@ -51,11 +51,11 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
 
   return (
     <div className="sticky top-8">
-      <Card className="p-6 bg-primary/5 border-2 border-primary">
-        <h3 className="text-xl font-bold text-foreground mb-4">Your Cart</h3>
+      <Card className="p-6 bg-primary/5 border-2 border-black bg-white">
+        <h3 className="text-xl font-bold text-black mb-4">Your Cart</h3>
 
         {isEmpty ? (
-          <p className="text-muted-foreground text-sm">Your cart is empty</p>
+          <p className="text-primary text-sm">Your cart is empty</p>
         ) : (
           <div className="space-y-4">
             {/* Items */}

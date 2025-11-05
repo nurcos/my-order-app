@@ -11,14 +11,12 @@ interface StepSixProps {
 export function OrderComplete({ orderData }: StepSixProps) {
   return (
     <div className="text-center space-y-8">
-      <div className="text-6xl mb-4">✅</div>
-
       <div>
         <h2 className="text-3xl font-bold text-primary mb-2">Order Confirmed!</h2>
         <p className="text-lg text-muted-foreground">Thank you for your order, {orderData.firstName}!</p>
       </div>
 
-      <Card className="p-6 bg-secondary/20 border border-secondary text-left">
+      <Card className="p-6 bg-[#bb2f39]/5 border-[#bb2f39] text-left">
         <h3 className="font-bold text-lg text-foreground mb-4">Order Details</h3>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
@@ -54,7 +52,7 @@ export function OrderComplete({ orderData }: StepSixProps) {
         <p className="text-muted-foreground">Your order is being prepared and will be delivered soon!</p>
         <Button
           onClick={() => window.location.reload()}
-          className="w-full py-6 text-lg bg-primary hover:bg-accent text-primary-foreground font-bold"
+          className="w-full py-6 text-lg bg-[#bb2f39] text-white border-black border-2 font-bold"
         >
           Place Another Order
         </Button>

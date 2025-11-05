@@ -52,7 +52,7 @@ export function StepFour({ orderData }: StepFourProps) {
 
       {/* Food Section */}
       {orderData.items.length > 0 && (
-        <Card className="p-4 bg-secondary/20 border border-secondary">
+        <Card className="p-4 bg-[#bb2f39]/5 border border-secondary">
           <h3 className="font-bold text-lg text-foreground mb-3">Your Items ({orderData.items.length})</h3>
           <div className="space-y-3">
             {orderData.items.map((item, index) => (
@@ -78,10 +78,9 @@ export function StepFour({ orderData }: StepFourProps) {
                       ))}
                       </>
                     )}
-                  <div className="flex justify-between font-bold text-primary pt-1 border-t border-border mt-1">
-                    <span>Subtotal</span>
-                    <span>£{item.price.toFixed(2)}</span>
-                  </div>
+                    <div className="font-bold text-primary pt-1 mt-1 text-right text-right">
+                      £{item.price.toFixed(2)}
+                    </div>
                 </div>
               </div>
             ))}
@@ -91,7 +90,7 @@ export function StepFour({ orderData }: StepFourProps) {
 
       {/* Drinks Section */}
       {(orderData.drinks.length > 0) && (
-        <Card className="p-4 bg-secondary/20 border border-secondary">
+        <Card className="p-4 bg-[#bb2f39]/5 border border-secondary">
           <h3 className="font-bold text-lg text-foreground mb-3">Drinks</h3>
           <div className="space-y-2 text-sm">
             {orderData.drinks.map((drink) => (
@@ -110,7 +109,7 @@ export function StepFour({ orderData }: StepFourProps) {
 
       {/* Extras Section */}
       {(orderData.extras.length > 0) && (
-        <Card className="p-4 bg-secondary/20 border border-secondary">
+        <Card className="p-4 bg-[#bb2f39]/5 border border-secondary">
           <h3 className="font-bold text-lg text-foreground mb-3">Extras</h3>
           <div className="space-y-2 text-sm">
             {orderData.extras.map((extra) => (
@@ -128,7 +127,7 @@ export function StepFour({ orderData }: StepFourProps) {
       )}
 
       {/* Delivery Info */}
-      <Card className="p-4 bg-secondary/20 border border-secondary">
+      <Card className="p-4 bg-[#bb2f39]/5 border border-secondary">
         <h3 className="font-bold text-lg text-foreground mb-3">Delivery Details</h3>
         <div className="space-y-2 text-sm">
           <div>
@@ -153,7 +152,7 @@ export function StepFour({ orderData }: StepFourProps) {
       </Card>
 
       {/* Total */}
-      <Card className="p-6 bg-primary/10 border-2 border-primary">
+      <Card className="p-6 bg-primary/10 border-2 border-[#bb2f39]">
         <div className="flex justify-between items-center mb-2">
           <span className="text-muted-foreground">Subtotal</span>
           <span>£{(calculateTotal() - 2).toFixed(2)}</span>
@@ -162,9 +161,9 @@ export function StepFour({ orderData }: StepFourProps) {
           <span className="text-muted-foreground">Delivery Fee</span>
           <span>£2.00</span>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-xl font-bold text-foreground">Total</span>
-          <span className="text-3xl font-bold text-primary">£{calculateTotal().toFixed(2)}</span>
+        <div className="flex justify-between items-center border-t-2 border-black pt-4">
+          <span className="text-xl font-bold text-black">Total</span>
+          <span className="text-3xl font-bold text-black">£{calculateTotal().toFixed(2)}</span>
         </div>
       </Card>
     </div>

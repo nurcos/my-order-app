@@ -198,7 +198,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
               onClick={() => handleSelectItem(item.id)}
               className={`p-4 cursor-pointer transition-all border-2 ${
               currentItem && currentItem.id === item.id
-                ? "border-primary bg-primary/5"
+                ? "border-[#bb2f39] bg-[#bb2f39]/5"
                 : "border-border hover:border-primary/50"
               }`}
             >
@@ -219,8 +219,8 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
                 key={data.id}
                 onClick={() => handleFillingToggle(data.id, option.id)}
                 // variant={c.data.includes(option.id) ? "default" : "outline"}
-                className={`bg-primary/5 border-primary text-primary py-6 justify-start shadow-lg ${
-                  data.selected ? "border-2" : ""
+                className={`bg-white border-[#bb2f39] text-primary py-6 justify-start shadow-lg ${
+                  data.selected ? "bg-[#bb2f39]/5 border-2" : ""
                 }`}
               >
                 <input
@@ -237,14 +237,14 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
         </div>
       ))}
 
-      <div className="bg-secondary/30 p-4 rounded-lg border border-secondary">
+      <div className="bg-[#bb2f39]/5 p-4 rounded-lg border border-secondary">
         <p className="text-sm text-muted-foreground">Subtotal for this item:</p>
         <p className="text-3xl font-bold text-primary mb-4">£{calculatePrice()}</p>
         <div className="relative flex justify-center items-center">
           <Button
             onClick={handleAddItem}
             disabled={!currentItem}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6"
+            className="w-full bg-[#bb2f39] border-black border-2 hover:bg-primary/90 text-primary-foreground py-6"
           >
             Add To Order
           </Button>

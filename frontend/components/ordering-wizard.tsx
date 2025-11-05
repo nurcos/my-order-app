@@ -153,17 +153,7 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
       case 4:
         return <StepFour orderData={orderData} />
       case 5:
-        return (
-          <>
-          <StepFive orderData={orderData} />
-          <Button
-            onClick={handleNext}
-            className="w-full py-6 text-lg bg-primary hover:bg-accent text-primary-foreground font-bold"
-          >
-            Complete Payment
-          </Button>
-        </>
-        )
+        return <StepFive handleNext={handleNext} orderData={orderData} />
       case 6:
         return <OrderComplete orderData={orderData} />
       default:
@@ -172,7 +162,7 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
   }
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-blue-50">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-primary">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
@@ -186,11 +176,11 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
                 className="mx-auto mb-4"
               />
               {selectedRestaurant && (
-                <p className="text-muted-foreground text-lg">
-                  Ordering from: <span className="font-semibold text-primary">{selectedRestaurant.name}</span>
+                <p className="text-white text-lg">
+                  Ordering from: <span className="font-semibold text-white">{selectedRestaurant.name}</span>
                 </p>
               )}
-              <p className="text-muted-foreground text-lg">{selectedRestaurant?.strapline}</p>
+              <p className="text-white text-lg">{selectedRestaurant?.strapline}</p>
             </div>
 
             {/* Progress Steps */}
@@ -202,19 +192,19 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                           step.number <= currentStep
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-[#bb2f39] text-white"
+                            : "bg-white text-muted-foreground"
                         }`}
                       >
                         {step.number}
                       </div>
-                      <p className="text-xs sm:text-sm text-center mt-2 text-muted-foreground">{step.title}</p>
+                      <p className="text-xs sm:text-sm text-center mt-2 text-white">{step.title}</p>
                     </div>
                   ))}
                 </div>
                 <div className="mt-4 h-1 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-primary transition-all duration-300"
+                    className="h-full bg-[#bb2f39] transition-all duration-300"
                     style={{ width: `${((currentStep - 1) / 5) * 100}%` }}
                   />
                 </div>
@@ -225,20 +215,21 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
             <Card className="p-8 mb-8 shadow-lg">{renderStep()}</Card>
 
             {/* Navigation Buttons */}
-            
               <div className="flex justify-between gap-4">
-                <Button
+                {currentStep !== 6 && (
+                  <Button
                   onClick={currentStep === 1 ? handleBack : handlePrevious}
                   disabled={currentStep === 1 && !handleBack}
                   variant="outline"
-                  className="px-8 bg-transparent"
-                >
+                  className="px-8 bg-transparent text-white"
+                  >
                   ← Back
-                </Button>
+                  </Button>
+                )}
                 {currentStep < 5  && (
                 <Button
                   onClick={handleNext}
-                  className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="px-8 bg-white text-primary hover:bg-[#bb2f39]/90"
                 >
                   Next →
                 </Button>
@@ -246,7 +237,7 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
               </div>
           </div>
 
-          {currentStep < 6 && currentStep !== 4 && (
+          {currentStep < 4 && (
             <div className="lg:col-span-1">
               <CartSidebar removeItemFromOrder={removeItemFromOrder} orderData={orderData} />
             </div>

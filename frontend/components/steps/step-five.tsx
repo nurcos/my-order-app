@@ -1,137 +1,196 @@
-"use client"
+"use client";
 
-import type { FoodItem, OrderData } from "../ordering-wizard"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import type { FoodItem, OrderData } from "../ordering-wizard";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface StepFiveProps {
-  orderData: OrderData
+  orderData: OrderData;
+  handleNext: () => void;
 }
 
-export function StepFive({ orderData }: StepFiveProps) {
-  const [cardNumber, setCardNumber] = useState("")
-  const [expiryDate, setExpiryDate] = useState("")
-  const [cvv, setCvv] = useState("")
-  const [cardName, setCardName] = useState("")
+export function StepFive({ handleNext, orderData }: StepFiveProps) {
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "google/apple">(
+    "card"
+  );
 
   function calculateFoodItemPrice(item: FoodItem): number {
-    let price = 0
+    let price = 0;
     price += item.price as number;
     item.options.forEach((option: any) => {
       option.data.forEach((data: { price: number }) => {
         price += data.price;
       });
     });
-    return price
+    return price;
   }
 
   const calculateTotal = () => {
-    let total = 0
+    let total = 0;
 
     // Food Items
     orderData.items.forEach((item) => {
-      total += calculateFoodItemPrice(item)
-    })
+      total += calculateFoodItemPrice(item);
+    });
 
     // Drinks
     orderData.drinks.forEach((drink) => {
-      const drinkInfo = orderData.drinks.find(d => d.id === drink.id)
-      if (drinkInfo && drinkInfo.price) total += drinkInfo.price * drink.quantity
-    })
+      const drinkInfo = orderData.drinks.find((d) => d.id === drink.id);
+      if (drinkInfo && drinkInfo.price)
+        total += drinkInfo.price * drink.quantity;
+    });
 
     // Extras
     orderData.extras.forEach((extra) => {
-      const extraInfo = orderData.extras.find(e => e.id === extra.id)
-      if (extraInfo && extraInfo.price) total += extraInfo.price * extra.quantity
-    })
-    // Delivery fee (only if there are items)
-    // if (orderData.items.length > 0) {
-    //   total += 2.0
-    // }
+      const extraInfo = orderData.extras.find((e) => e.id === extra.id);
+      if (extraInfo && extraInfo.price)
+        total += extraInfo.price * extra.quantity;
+    });
 
-    return total
-  }
+    if (orderData.items.length > 0) {
+      total += 2.0;
+    }
+
+    return total;
+  };
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-6">Payment Information</h2>
-        <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground mb-6">
+          Payment Information
+        </h2>
+
+        <Card className="p-6 bg-primary/10 border-2 border-[#bb2f39]">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-black">Order Total</span>
+            <span className="text-3xl font-bold text-black">
+              £{calculateTotal().toFixed(2)}
+            </span>
+          </div>
+        </Card>
+
+        <div className="flex justify-center space-x-4 mb-6 mt-6">
+            <Button
+            onClick={() => {
+              setPaymentMethod("card");
+            }}
+            className={`px-4 py-2 font-bold ${
+              paymentMethod === "card"
+              ? "bg-primary text-primary-foreground border-2 border-[#bb2f39]"
+              : "bg-primary text-primary-foreground"
+            }`}
+            >
+            Card Payment
+            </Button>
+          <Button
+            onClick={() => {
+              setPaymentMethod("google/apple");
+            }}
+            className={`px-4 py-2 font-bold ${
+              paymentMethod === "google/apple"
+              ? "bg-primary text-primary-foreground border-2 border-[#bb2f39]"
+              : "bg-primary text-primary-foreground"
+            }`}
+          >
+            Google/Apple Pay
+          </Button>
+        </div>
+
+        {paymentMethod === "card" ? (
           <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Cardholder Name *</label>
-          <Input
-            type="text"
-            value={cardName}
-            onChange={(e) => setCardName(e.target.value)}
-            placeholder="John Doe"
-            className="w-full"
-          />
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Cardholder Name *
+              </label>
+              <Input
+                type="text"
+                value={cardName}
+                onChange={(e) => setCardName(e.target.value)}
+                placeholder="John Doe"
+                className="w-full"
+              />
             </div>
             <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Card Number *</label>
-          <Input
-            type="text"
-            value={cardNumber}
-            onChange={(e) => setCardNumber(e.target.value.replace(/\s/g, "").slice(0, 16))}
-            placeholder="1234 5678 9012 3456"
-            maxLength={19}
-            className="w-full font-mono"
-          />
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Card Number *
+              </label>
+              <Input
+                type="text"
+                value={cardNumber}
+                onChange={(e) =>
+                  setCardNumber(e.target.value.replace(/\s/g, "").slice(0, 16))
+                }
+                placeholder="1234 5678 9012 3456"
+                maxLength={19}
+                className="w-full font-mono"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Expiry Date *</label>
-            <Input
-              type="text"
-              value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value.slice(0, 5))}
-              placeholder="MM/YY"
-              maxLength={5}
-              className="w-full font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">CVV *</label>
-            <Input
-              type="text"
-              value={cvv}
-              onChange={(e) => setCvv(e.target.value.slice(0, 3))}
-              placeholder="123"
-              maxLength={3}
-              className="w-full font-mono"
-            />
-          </div>
-        </div>
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold">Alternative Payment Methods</h3>
-          <div className="text-sm text-muted-foreground mb-2">
-            You can also choose to pay using Google Pay or Apple Pay.
-          </div>
-        </div>
-          <div className="flex items-center justify-center space-x-4 mt-6">
-        <Button className="bg-gray-200 text-white px-4 py-2 rounded-md border border-gray-900">
-          <span className="sr-only">Pay with Google Pay</span>
-          <img src="/img/google-pay-logo.png" alt="Google Pay" className="h-6" />
-        </Button>
-        <Button className="bg-gray-200 text-white px-4 py-2 rounded-md border border-gray-900">
-          <span className="sr-only">Pay with Apple Pay</span>
-          <img src="/img/apple-pay-logo.png" alt="Apple Pay" className="h-6" />
-        </Button>
-          </div>
-        </div>
-      </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Expiry Date *
+                </label>
+                <Input
+                  type="text"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value.slice(0, 5))}
+                  placeholder="MM/YY"
+                  maxLength={5}
+                  className="w-full font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  CVV *
+                </label>
+                <Input
+                  type="text"
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value.slice(0, 3))}
+                  placeholder="123"
+                  maxLength={3}
+                  className="w-full font-mono"
+                />
+              </div>
+            </div>
 
-      <Card className="p-6 bg-primary/10 border-2 border-primary">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-muted-foreground">Order Total</span>
-          <span className="text-3xl font-bold text-primary">£{calculateTotal().toFixed(2)}</span>
-        </div>
-        <p className="text-xs text-muted-foreground mt-4">
-          By clicking "Complete Payment", you agree to our terms and conditions.
-        </p>
-      </Card>
+            <Button
+              onClick={handleNext}
+              className="w-full py-6 text-lg bg-primary hover:bg-accent text-primary-foreground font-bold mt-4"
+            >
+              Complete Payment
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <div className="flex items-center justify-center space-x-4 mt-6">
+              <Button className="bg-gray-200 text-white px-4 py-2 rounded-md border border-gray-900" onClick={handleNext}>
+                <span className="sr-only">Pay with Google Pay</span>
+                <img
+                  src="/img/google-pay-logo.png"
+                  alt="Google Pay"
+                  className="h-6"
+                />
+              </Button>
+              <Button className="bg-gray-200 text-white px-4 py-2 rounded-md border border-gray-900" onClick={handleNext}>
+                <span className="sr-only">Pay with Apple Pay</span>
+                <img
+                  src="/img/apple-pay-logo.png"
+                  alt="Apple Pay"
+                  className="h-6"
+                />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

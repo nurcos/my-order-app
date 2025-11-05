@@ -24,7 +24,7 @@ const RESTAURANTS: Restaurant[] = [
 
 export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSelectionProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-blue-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-primary py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -35,7 +35,7 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
             height={100}
             className="mx-auto mb-4"
           />
-          <p className="text-muted-foreground text-lg">Select Your Local Restaurant</p>
+          <p className="text-white text-lg">Select Your Local Restaurant</p>
         </div>
 
         {/* Restaurant Grid */}
@@ -76,7 +76,7 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
 
                 <Button
                   onClick={() => onSelectRestaurant(restaurant)}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                  className="w-full bg-[#bb2f39] hover:bg-primary/90 text-primary-foreground border border-2 border-black font-semibold"
                 >
                   Order from Here
                 </Button>
@@ -87,7 +87,7 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
 
         {/* Back Button */}
         <div className="flex justify-center">
-          <Button onClick={onBack} variant="outline" className="px-8 bg-transparent">
+          <Button onClick={onBack} variant="outline" className="px-8 bg-transparent text-white">
             ← Back to Home
           </Button>
         </div>

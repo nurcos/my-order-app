@@ -104,7 +104,7 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
         </div>
 
         {paymentMethod === "card" ? (
-          <div>
+          <div className="space-y-4">
             <div className="space-y-4">
               <label className="block text-sm font-medium text-foreground mb-2">
                 Cardholder Name *
@@ -117,7 +117,7 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
                 className="w-full"
               />
             </div>
-            <div>
+            <div className="space-y-4">
               <label className="block text-sm font-medium text-foreground mb-2">
                 Card Number *
               </label>
@@ -132,7 +132,7 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
                 className="w-full font-mono"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Expiry Date *
@@ -171,20 +171,20 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
         ) : (
           <div>
             <div className="flex items-center justify-center space-x-4 mt-6">
-              <Button className="bg-gray-200 text-white px-4 py-2 rounded-md border border-gray-900" onClick={handleNext}>
+              <Button className="bg-gray-200 text-white px-4 py-6 rounded-md border border-gray-900" onClick={handleNext}>
                 <span className="sr-only">Pay with Google Pay</span>
                 <img
                   src="/img/google-pay-logo.png"
                   alt="Google Pay"
-                  className="h-6"
+                  className="h-8"
                 />
               </Button>
-              <Button className="bg-gray-200 text-white px-4 py-2 rounded-md border border-gray-900" onClick={handleNext}>
+              <Button className="bg-gray-200 text-white px-4 py-6 rounded-md border border-gray-900" onClick={handleNext}>
                 <span className="sr-only">Pay with Apple Pay</span>
                 <img
                   src="/img/apple-pay-logo.png"
                   alt="Apple Pay"
-                  className="h-6"
+                  className="h-8"
                 />
               </Button>
             </div>

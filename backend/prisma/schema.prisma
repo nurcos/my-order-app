@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Restaurant {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  menuItems MenuItem[]
+  orders    Order[]
+  createdAt DateTime  @default(now())
+}
+
+model MenuItem {
+  id            String        @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant    @relation(fields: [restaurantId], references: [id])
+  name          String
+  type          String        // "food" | "drink" | "extra"
+  basePrice     Decimal
+  optionGroups  OptionGroup[]
+  active        Boolean       @default(true)
+  // add inverse relation for OrderItem
+  orderItems    OrderItem[]
+}
+
+model OptionGroup {
+  id         String    @id @default(cuid())
+  menuItemId String
+  menuItem   MenuItem  @relation(fields: [menuItemId], references: [id])
+  name       String    // e.g., "Bread", "Fillings", "Sauces"
+  selection  String    // "single" | "multiple"
+  options    Option[]
+}
+
+model Option {
+  id            String       @id @default(cuid())
+  optionGroupId String
+  optionGroup   OptionGroup  @relation(fields: [optionGroupId], references: [id])
+  name          String
+  priceDelta    Decimal      @default(0)
+}
+
+model Order {
+  id            String       @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant   @relation(fields: [restaurantId], references: [id])
+  status        String       @default("pending") // pending | paid | failed | canceled
+  items         OrderItem[]
+  total         Decimal
+  currency      String       @default("gbp")
+  deliveryOnly  Boolean      @default(true)
+  paymentIntent String?      // Stripe PaymentIntent id
+  createdAt     DateTime     @default(now())
+}
+
+model OrderItem {
+  id         String      @id @default(cuid())
+  orderId    String
+  order      Order       @relation(fields: [orderId], references: [id])
+  menuItemId String
+  menuItem   MenuItem    @relation(fields: [menuItemId], references: [id])
+  quantity   Int         @default(1)
+  selections Json
+  unitPrice  Decimal
+  lineTotal  Decimal
+}

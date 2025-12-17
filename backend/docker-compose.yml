@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: myorder_db
+    environment:
+      POSTGRES_USER: myorder
+      POSTGRES_PASSWORD: myorderpw
+      POSTGRES_DB: my_order_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myorder -d my_order_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  myorder_backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myorder_backend
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgres://myorder:myorderpw@db:5432/my_order_db?schema=public
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./package.json:/app/package.json
+    command: >
+      sh -c "npx prisma generate &&
+             npx prisma migrate deploy &&
+             npx ts-node prisma/seed.ts &&
+             npx ts-node-dev --respawn --transpile-only src/server.ts"
+
+volumes:
+  db_data:

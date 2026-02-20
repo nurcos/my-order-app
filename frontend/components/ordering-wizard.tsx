@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { StepOne } from "./steps/step-one"
@@ -19,41 +19,34 @@ export interface Restaurant {
   location: string
   rating: number
   deliveryTime: string
-  minOrder: number
+  min_order: number
 }
 
-export interface FoodItem {
+export interface CartItem {
   id: string
   name: string
-  options: Record<string, any>
+  variant?: string
+  options?: Record<string, any>
   price: number
 }
 
-export interface DrinkItem {
+export interface MenuItem {
+  id: string
   name: string
-  id: string
-  drinkId: string
-  price?: number
-  quantity: number
-}
-
-export interface ExtraItem {
-  id: string
-  name?: string
-  extraId: string
-  quantity: number
-  price?: number
+  options: Record<string, any>
+  type: number
+  base_price: number
+  expand: any
 }
 
 export interface OrderData {
   restaurant: Restaurant[]
 
   // Step 1: Multiple items
-  items: FoodItem[]
+  items: CartItem[]
 
   // Step 2: Drinks & Extras with quantities
-  drinks: DrinkItem[]
-  extras: ExtraItem[]
+  drinks: CartItem[]
 
   // Step 3: Customer & Delivery info
   firstName: string
@@ -88,7 +81,6 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
     restaurant: [],
     items: [],
     drinks: [],
-    extras: [],
     firstName: "",
     lastName: "",
     email: "",
@@ -99,6 +91,9 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
     deliveryTime: "asap",
     total: 0,
   })
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const removeItemFromOrder = (itemIndex: number) => {
     setOrderData((prev) => {

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Image from "next/image"
 import type { Restaurant } from "./ordering-wizard"
+import { useEffect, useRef, useState } from "react"
+import { pb } from "../lib/pb"
 
 interface RestaurantSelectionProps {
   onSelectRestaurant: (restaurant: Restaurant) => void
@@ -11,18 +13,40 @@ interface RestaurantSelectionProps {
 }
 
 const RESTAURANTS: Restaurant[] = [
-  {
-    id: "watton-hot-baguette",
-    name: "The Watton Hot Baguette",
-    strapline: "Handcrafted in Watton daily with the finest ingredients",
-    location: "Watton, Norfolk",
-    rating: 5,
-    deliveryTime: "25-35 mins",
-    minOrder: 8,
-  },
+  // {
+  //   id: "watton-hot-baguette",
+  //   name: "The Watton Hot Baguette",
+  //   strapline: "Handcrafted in Watton daily with the finest ingredients",
+  //   location: "Watton, Norfolk",
+  //   rating: 5,
+  //   deliveryTime: "25-35 mins",
+  //   min_order: 8,
+  // },
 ]
 
 export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSelectionProps) {
+
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const didFetch = useRef(false)
+
+  useEffect(() => {
+    if (didFetch.current) return
+    didFetch.current = true
+
+    setLoading(true)
+    pb.get("stores")
+      .then((data:any) => {
+        setRestaurants(data)
+      })
+      .catch((err:any) => setError(err.message))
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
+
   return (
     <div className="min-h-screen bg-primary py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -38,9 +62,21 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
           <p className="text-white text-lg">Select Your Local Restaurant</p>
         </div>
 
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
         {/* Restaurant Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {RESTAURANTS.map((restaurant) => (
+
+          {loading && (
+            <div className="flex justify-center items-center py-8 col-span-full">
+              <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+            </div>
+          )}
+          
+          {restaurants.map((restaurant) => (
             <Card
               key={restaurant.id}
               className="p-6 hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-primary"
@@ -66,12 +102,12 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
                     <span className="font-semibold text-primary">{restaurant.rating}</span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <p>⏱️ {restaurant.deliveryTime}</p>
+                    <p>⏱️ 25-35 minutes</p>
                   </div>
                 </div>
 
                 <div className="pt-2 border-t border-muted">
-                  <p className="text-xs text-muted-foreground">Min. order: £{restaurant.minOrder}</p>
+                  <p className="text-xs text-muted-foreground">Min. order: £{restaurant.min_order}</p>
                 </div>
 
                 <Button

@@ -1,266 +1,255 @@
-"use client"
+"use client";
 
-import type { OrderData, FoodItem } from "../ordering-wizard"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import Image from "next/image"
+import type { OrderData, MenuItem, CartItem } from "../ordering-wizard";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { pb } from "@/lib/pb";
 
 interface StepOneProps {
-  orderData: OrderData
-  onUpdate: (updates: Partial<OrderData>) => void
+  orderData: OrderData;
+  onUpdate: (updates: Partial<OrderData>) => void;
 }
 
-const ITEMS = [
-  {
-    id: "classic",
-    name: "Classic",
-    price: 4.99,
-    description: "Traditional French style",
-    options: [
-      {
-        id: 'fillings',
-        name: 'Fillings',
-        data: [
-          { id: "butter", name: "Butter", price: 0.5 },
-          { id: "cheese", name: "Cheese", price: 1.0 },
-          { id: "ham", name: "Ham", price: 1.5 },
-          { id: "salami", name: "Salami", price: 1.5 },
-          { id: "vegetables", name: "Vegetables", price: 1.0 },
-          { id: "pesto", name: "Pesto", price: 1.25 },
-        ]
-      },
-      {
-        id: 'sauces',
-        name: 'Sauces',
-        data: [
-          { id: "ketchup", name: "Ketchup", price: 0.2 },
-          { id: "mustard", name: "Mustard", price: 0.2 },
-          { id: "mayo", name: "Mayonnaise", price: 0.3 },
-        ]
-      }
-    ],
-  },
-  {
-    id: "whole-wheat",
-    name: "Whole Wheat",
-    price: 5.49,
-    description: "Healthy whole wheat baguette",
-    options: [
-      {
-        id: 'fillings',
-        name: 'Fillings',
-        data: [
-          { id: "butter", name: "Butter", price: 0.5 },
-          { id: "cheese", name: "Cheese", price: 1.0 },
-          { id: "ham", name: "Ham", price: 1.5 },
-          { id: "salami", name: "Salami", price: 1.5 },
-          { id: "vegetables", name: "Vegetables", price: 1.0 },
-          { id: "pesto", name: "Pesto", price: 1.25 },
-        ]
-      },
-      {
-        id: 'sauces',
-        name: 'Sauces',
-        data: [
-          { id: "ketchup", name: "Ketchup", price: 0.2 },
-          { id: "mustard", name: "Mustard", price: 0.2 },
-          { id: "mayo", name: "Mayonnaise", price: 0.3 },
-        ]
-      }
-    ],
-  },
-  {
-    id: "sourdough",
-    name: "Sourdough",
-    price: 5.99,
-    description: "Tangy sourdough flavor",
-    options: [
-      {
-        id: 'fillings',
-        name: 'Fillings',
-        data: [
-          { id: "butter", name: "Butter", price: 0.5 },
-          { id: "cheese", name: "Cheese", price: 1.0 },
-          { id: "ham", name: "Ham", price: 1.5 },
-          { id: "salami", name: "Salami", price: 1.5 },
-          { id: "vegetables", name: "Vegetables", price: 1.0 },
-          { id: "pesto", name: "Pesto", price: 1.25 },
-        ]
-      },
-      {
-        id: 'sauces',
-        name: 'Sauces',
-        data: [
-          { id: "ketchup", name: "Ketchup", price: 0.2 },
-          { id: "mustard", name: "Mustard", price: 0.2 },
-          { id: "mayo", name: "Mayonnaise", price: 0.3 },
-        ]
-      }
-    ],
-  },
-]
-
-
 export function StepOne({ orderData, onUpdate }: StepOneProps) {
-  // track the currently selected item locally so calling handleSelectItem
-  // programmatically will also update the UI
-  const [currentItem, setCurrentItem] = useState<FoodItem | null>(null)
-  const [isAdding, setIsAdding] = useState(false)
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSelectItem = (itemId: string) => {
-    if(currentItem) {
-      // reset options selections when changing item
-      currentItem.options.forEach((option: any) => {
-        option.data.forEach((data: any) => {
-          data.selected = false
-        })
+  const [currentItem, setCurrentItem] = useState<MenuItem | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    pb.get("menu_items", "category,variants,option_types,option_types.options")
+      .then((data: any) => {
+        const list = Array.isArray(data) ? data : data.items || data.records || [];
+        setItems(list);
+        console.log(list)
       })
+      .catch((err: any) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const selectItem = (item: MenuItem | null) => {
+    if (!item) return;
+    setCurrentItem(item);
+    const hasVariants = item.expand?.variants?.length;
+    const hasOptions = item.expand?.option_types;
+    if (hasVariants || hasOptions) {
+      setModalOpen(true);
+      return;
     }
+  };
 
-    const newItem: FoodItem = ITEMS.find((item) => item.id === itemId) as FoodItem
-    // update local selection so UI reflects the change
+  const selectItemVariant = (variantId: string) => {
+    if (!currentItem) return;
+    const variant = currentItem.expand?.variants?.find((v: any) => v.id === variantId);
+    if (variant) {
+      variant.selected = true;
+      setCurrentItem({ ...currentItem });
+    }
+  };
 
-    setCurrentItem(newItem)
+  const selectItemOption = (optionId: string) => {
+    if (!currentItem) return;
+    const option = currentItem.expand?.option_types?.flatMap((ot: any) => ot.expand?.options || []).find((o: any) => o.id === optionId);
+    if (option) {
+      option.selected = true;
+      setCurrentItem({ ...currentItem });
+    }
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setCurrentItem(null);
+  };
+
+  const toggleOption = (e: React.MouseEvent, optId: string) => {
+    e.stopPropagation();
     
-    // also update parent order data if needed (this adds the item to items array)
-    // onUpdate({ items: [...orderData.items, newItem] })
-  }
-
-  const handleFillingToggle = (dataId: string, optionId: string) => {
-    if (!currentItem) return
-
-    // Here you would update the currentItem's options based on the selected optionId
-    // For simplicity, this example does not track selected options
-    const options = currentItem.options.find((opt: any) => opt.id === optionId)
-    if (options) {
-      const data = options.data.find((d: any) => d.id === dataId)
-      if (data) {
-        data.selected = !data.selected
-        setCurrentItem({ ...currentItem })
-      }
-    }
-  }
+  };
 
   const handleAddItem = () => {
-    if (currentItem) {
-      const selectedOptions = currentItem.options.map((option: any) => ({
-        ...option,
-        data: option.data.filter((data: any) => data.selected),
-      }))
-      onUpdate({ items: [...orderData.items, { ...currentItem, options: selectedOptions }] })
+    if (!currentItem) return;
 
-      // Remove all options other than those selected
-      if (currentItem) {
-        // Reset options after adding the item
-        currentItem.options.forEach((option: any) => {
-            option.data.forEach((data: any) => {
-            data.selected = false
-          })
-        })
-      }
+    var cartItem: CartItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      price: currentItem.base_price ?? 0,
+      name: currentItem.name,
+      variant: undefined,
+      options: []
+    };
 
-      // Reset the current selection after adding the item
-      setCurrentItem(null)
-
-      setIsAdding(true)
-      setTimeout(() => setIsAdding(false), 1000)
+    // Apply variants to cart item
+    if (currentItem.expand?.variants) {
+      const selectedVariant = currentItem.expand.variants.find((v: any) => v.selected);
+      cartItem.variant = selectedVariant;
     }
-  }
 
-  const calculatePrice = () => {
-    let price = 0
-    if (currentItem && currentItem.price) {
-      price += currentItem.price
-      if(currentItem.options) {
-        currentItem.options.forEach((option: any) => {
-          option.data.forEach((data: any) => {
-            if (data.selected) {
-              price += data.price
+    if (currentItem.expand?.option_types) {
+      let options: any[] = [];
+      currentItem.expand.option_types.forEach((optionType: any) => {
+        if (optionType.expand?.options) {
+          optionType.expand.options.forEach((option: any) => {
+            if(option.selected) {
+              options.push(option);
             }
-          })
-        })
-      }
+          });
+        }
+      });
+      cartItem.options = options;
     }
 
-    return price.toFixed(2)
-  }
+    // Add to cart
+    onUpdate({
+      items: [...orderData.items, cartItem],
+    });
+
+    closeModal();
+  };
 
   return (
     <div className="space-y-8">
-
       <div>
-        <h3 className="text-xl font-bold text-foreground mb-4">Select Your Options</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {ITEMS.map((item) => (
-            <Card
-              key={item.id}
-              onClick={() => handleSelectItem(item.id)}
-              className={`p-4 cursor-pointer transition-all border-2 ${
-              currentItem && currentItem.id === item.id
-                ? "border-[#bb2f39] bg-[#bb2f39]/5"
-                : "border-border hover:border-primary/50"
-              }`}
-            >
-              <h3 className="font-bold text-lg text-foreground">{item.name}</h3>
-              <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
-              <p className="text-primary font-bold">£{item.price.toFixed(2)}</p>
-            </Card>
-          ))}
-        </div>
+        {loading && <div className="text-sm text-muted-foreground">Loading…</div>}
+        {error && <div className="text-sm text-red-600">{error}</div>}
+
+        {/* Group items by category */}
+        {(() => {
+          const categories: Record<string, MenuItem[]> = {};
+          items.forEach((item) => {
+            const cat = item.expand?.category?.name || "Uncategorised";
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(item);
+          });
+
+          return (
+            <div className="mb-8">
+              {Object.entries(categories).map(([catName, catItems]) => {
+                const catObj = catItems[0]?.expand?.category;
+                if (catObj?.priority === 0) return null;
+                return (
+                  <div key={catName} className="mb-6">
+                    <h3 className="text-lg font-bold mb-4">{catName}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {catItems.map((item) => {
+                        return (
+                          <Card
+                            key={item.id}
+                            onClick={() => selectItem(item)}
+                            className={`p-4 cursor-pointer transition-all border-2 border-border hover:border-primary/50 ${item.id === currentItem?.id ? "border-primary" : ""}`}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-bold text-lg text-foreground">{item.name}</h4>
+                                {typeof item.base_price === "number" && item.base_price > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    £{Number(item.base_price).toFixed(2)}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
-      {currentItem && currentItem.options.map((option: any) => (
-        <div key={option.id}>
-          <h3 className="text-xl font-bold mb-4">{option.name}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {option.data.map((data: any) => (
-              <Button
-                key={data.id}
-                onClick={() => handleFillingToggle(data.id, option.id)}
-                // variant={c.data.includes(option.id) ? "default" : "outline"}
-                className={`bg-white border-[#bb2f39] text-primary py-6 justify-start shadow-lg ${
-                  data.selected ? "bg-[#bb2f39]/5 border-2" : ""
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={data.selected || false}
-                  onChange={() => {}}
-                  className="mr-3"
-                />
-                <span className="flex-1 text-left">{data.name}</span>
-                <span className="text-sm">+£{data.price.toFixed(2)}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-      ))}
+      {/* Modal */}
+      {modalOpen && currentItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="fixed inset-0 bg-black/40" onClick={closeModal} />
+          <div className="relative z-10 w-full max-w-2xl p-6 bg-white rounded-lg shadow-lg">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold">{currentItem.name}</h3>
+              </div>
+              <button aria-label="Close" onClick={closeModal} className="text-lg">
+                ✕
+              </button>
+            </div>
 
-      <div className="bg-[#bb2f39]/5 p-4 rounded-lg border border-secondary">
-        <p className="text-sm text-muted-foreground">Subtotal for this item:</p>
-        <p className="text-3xl font-bold text-primary mb-4">£{calculatePrice()}</p>
-        <div className="relative flex justify-center items-center">
-          <Button
-            onClick={handleAddItem}
-            disabled={!currentItem}
-            className="w-full bg-[#bb2f39] border-black border-2 hover:bg-primary/90 text-primary-foreground py-6"
-          >
-            Add To Order
-          </Button>
-          <Image 
-            src="/img/food.png" 
-            width={80} 
-            height={80} 
-            alt="Food Image" 
-            className={`z-50 absolute transition-transform transition-opacity duration-1000 pointer-events-none`}
-            style={{
-              transform: isAdding ? "translateY(25vh) scale(0)" : "",
-              opacity: isAdding ? 0.4 : 0,
-            }}
-          />
+            {/* variants (single select) */}
+            {currentItem.expand?.variants?.length > 0 && (
+              <div className="mb-4">
+                <div className="space-y-2">
+                  {currentItem.expand.variants.map((variant: any) => (
+                    <label
+                      key={variant.id}
+                      onClick={() => selectItemVariant(variant.id)}
+                    >
+                      <div>
+                        <div className="font-medium">{variant.display_name ?? variant.name}</div>
+                        <div className="text-xs text-muted-foreground">£{Number(variant.base_price ?? 0).toFixed(2)}</div>
+                      </div>
+                      <input type="radio" checked={variant.selected} readOnly />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {currentItem.expand?.option_types?.length > 0 && (
+              <div className="mb-4 space-y-4">
+                {currentItem.expand.option_types.map((optionType: any) => (
+                  <div key={optionType.id}>
+                    <div className="font-semibold mb-2">{optionType.display_name ?? optionType.name}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {optionType.expand?.options?.map((option: any) => (
+                        <label
+                          key={option.id}
+                          className={`flex items-center gap-2 px-3 py-2 border rounded cursor-pointer`}
+                          onClick={e => selectItemOption(option.id)}
+                        >
+                          <input type="checkbox" checked={option.selected} readOnly />
+                          <span>{option.display_name ?? option.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4">
+              <Button
+                onClick={() => handleAddItem()}
+                className="w-full bg-[#bb2f39] border-black border-2 hover:bg-primary/90 text-primary-foreground py-4"
+              >
+                Add to cart
+              </Button>
+            </div>
+
+          </div> 
         </div>
+      )}
+
+      {/* small persistent checkout card */}
+      <div className="bg-[#bb2f39]/5 p-4 rounded-lg border border-secondary">
+        {currentItem && (
+          <p className="text-3xl font-bold text-primary mb-4">
+            £
+            {currentItem.base_price?.toFixed(2) || "0.00"}
+          </p>
+          )}
+        <Button
+          onClick={() => {}}
+          className="w-full bg-[#bb2f39] border-black border-2 hover:bg-primary/90 text-primary-foreground py-4"
+        >
+          Add to cart
+        </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -17,6 +17,8 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
   const [error, setError] = useState<string | null>(null);
 
   const [currentItem, setCurrentItem] = useState<MenuItem | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
@@ -25,10 +27,12 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
       .then((data: any) => {
         const list = Array.isArray(data) ? data : data.items || data.records || [];
         setItems(list);
-        console.log(list)
+        console.log(list);
       })
       .catch((err: any) => setError(err.message))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const selectItem = (item: MenuItem | null) => {
@@ -37,6 +41,15 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
     const hasVariants = item.expand?.variants?.length;
     const hasOptions = item.expand?.option_types;
     if (hasVariants || hasOptions) {
+      if (hasOptions) {
+        const optionsArray = item.expand.option_types.map((optionType: any) => ({
+          id: optionType.id,
+          name: optionType.name,
+          options: []
+        }));
+        setSelectedOptions(optionsArray);
+      }
+      
       setModalOpen(true);
       return;
     }
@@ -45,29 +58,37 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
   const selectItemVariant = (variantId: string) => {
     if (!currentItem) return;
     const variant = currentItem.expand?.variants?.find((v: any) => v.id === variantId);
-    if (variant) {
-      variant.selected = true;
-      setCurrentItem({ ...currentItem });
+    if(variant) {
+      setSelectedVariant(variant);
     }
   };
 
-  const selectItemOption = (optionId: string) => {
-    if (!currentItem) return;
-    const option = currentItem.expand?.option_types?.flatMap((ot: any) => ot.expand?.options || []).find((o: any) => o.id === optionId);
-    if (option) {
-      option.selected = true;
-      setCurrentItem({ ...currentItem });
+  const selectItemOption = (optionType: any, option: any) => {
+    var newOption = {
+      id: option.id,
+      name: option.name,
+      price: option.price,
     }
+
+    var currentOptionType = selectedOptions.find((o) => o.id === optionType.id);
+
+    var hasOption = currentOptionType?.options.find((o: any) => o.id === option.id);
+
+    if (!hasOption) {
+      currentOptionType.options.push(newOption);
+    } else {
+      currentOptionType.options = currentOptionType.options.filter((o: any) => o.id !== option.id);
+    }
+    
+    setSelectedOptions(selectedOptions.map((o) => o.id === optionType.id ? currentOptionType : o));
+    console.log(selectedOptions)
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setCurrentItem(null);
-  };
-
-  const toggleOption = (e: React.MouseEvent, optId: string) => {
-    e.stopPropagation();
-    
+    setSelectedVariant(null);
+    setSelectedOptions([]);
   };
 
   const handleAddItem = () => {
@@ -83,10 +104,11 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
 
     // Apply variants to cart item
     if (currentItem.expand?.variants) {
-      const selectedVariant = currentItem.expand.variants.find((v: any) => v.selected);
+      cartItem.price = selectedVariant?.base_price ?? cartItem.price;
       cartItem.variant = selectedVariant;
     }
 
+    //apply options to cart item
     if (currentItem.expand?.option_types) {
       let options: any[] = [];
       currentItem.expand.option_types.forEach((optionType: any) => {
@@ -105,6 +127,8 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
     onUpdate({
       items: [...orderData.items, cartItem],
     });
+
+    setCurrentItem(null);
 
     closeModal();
   };
@@ -165,7 +189,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
       {/* Modal */}
       {modalOpen && currentItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
           role="dialog"
           aria-modal="true"
         >
@@ -183,17 +207,18 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
             {/* variants (single select) */}
             {currentItem.expand?.variants?.length > 0 && (
               <div className="mb-4">
-                <div className="space-y-2">
+                <div className="flex gap-4">
                   {currentItem.expand.variants.map((variant: any) => (
                     <label
                       key={variant.id}
-                      onClick={() => selectItemVariant(variant.id)}
+                      className={`p-2 px-6 rounded-xl shadow-lg border border-muted text-center ${selectedVariant?.id === variant.id ? "border-2 border-primary" : ""}`}
+                      onChange={() => selectItemVariant(variant.id)}
                     >
                       <div>
                         <div className="font-medium">{variant.display_name ?? variant.name}</div>
                         <div className="text-xs text-muted-foreground">£{Number(variant.base_price ?? 0).toFixed(2)}</div>
                       </div>
-                      <input type="radio" checked={variant.selected} readOnly />
+                      <input type="radio" hidden checked={selectedVariant?.id === variant.id} readOnly />
                     </label>
                   ))}
                 </div>
@@ -209,10 +234,14 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
                       {optionType.expand?.options?.map((option: any) => (
                         <label
                           key={option.id}
-                          className={`flex items-center gap-2 px-3 py-2 border rounded cursor-pointer`}
-                          onClick={e => selectItemOption(option.id)}
+                          className={`px-3 py-2 flex items-center gap-2 border rounded-xl cursor-pointer ${
+                            selectedOptions.find((ot) => ot.id === optionType.id)?.options.some((o: any) => o.id === option.id)
+                              ? "border-2 border-primary"
+                              : ""
+                          }`}
+                          onChange={() => selectItemOption(optionType, option)}
                         >
-                          <input type="checkbox" checked={option.selected} readOnly />
+                          <input type="checkbox" hidden checked={selectedOptions.find((ot) => ot.id === optionType.id)?.options.some((o: any) => o.id === option.id)} readOnly />
                           <span>{option.display_name ?? option.name}</span>
                         </label>
                       ))}
@@ -226,6 +255,11 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
               <Button
                 onClick={() => handleAddItem()}
                 className="w-full bg-[#bb2f39] border-black border-2 hover:bg-primary/90 text-primary-foreground py-4"
+                disabled={
+                  (currentItem.expand?.variants?.length > 0 && !selectedVariant) ||
+                  (currentItem.expand?.option_types?.length > 0 &&
+                    selectedOptions.every((ot) => !ot.options || ot.options.length === 0))
+                }
               >
                 Add to cart
               </Button>
@@ -244,7 +278,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
           </p>
           )}
         <Button
-          onClick={() => {}}
+          onClick={() => handleAddItem()}
           className="w-full bg-[#bb2f39] border-black border-2 hover:bg-primary/90 text-primary-foreground py-4"
         >
           Add to cart

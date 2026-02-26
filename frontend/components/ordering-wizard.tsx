@@ -11,6 +11,7 @@ import { StepFive } from "./steps/step-five"
 import { CartSidebar } from "./cart-sidebar"
 import Image from "next/image"
 import { OrderComplete } from "./steps/order-complete"
+import { pb } from "@/lib/pb";
 
 export interface Restaurant {
   id: string
@@ -28,6 +29,7 @@ export interface CartItem {
   variant?: string
   options?: Record<string, any>
   price: number
+  quantity: number
 }
 
 export interface MenuItem {
@@ -37,16 +39,16 @@ export interface MenuItem {
   type: number
   base_price: number
   expand: any
+  quantity?: number
 }
 
 export interface OrderData {
   restaurant: Restaurant[]
 
-  // Step 1: Multiple items
-  items: CartItem[]
+  menuItems: MenuItem[]
 
-  // Step 2: Drinks & Extras with quantities
-  drinks: CartItem[]
+  // Step 1 & 2: Multiple items
+  cartItems: CartItem[]
 
   // Step 3: Customer & Delivery info
   firstName: string
@@ -77,10 +79,11 @@ interface OrderingWizardProps {
 
 export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizardProps) {
   const [currentStep, setCurrentStep] = useState(1)
+
   const [orderData, setOrderData] = useState<OrderData>({
     restaurant: [],
-    items: [],
-    drinks: [],
+    menuItems: [],
+    cartItems: [],
     firstName: "",
     lastName: "",
     email: "",
@@ -95,11 +98,24 @@ export function OrderingWizard({ handleBack, selectedRestaurant }: OrderingWizar
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    pb.get("menu_items", "category,variants,option_types,option_types.options")
+    .then((data: any) => {
+      const list = Array.isArray(data) ? data : data.items || data.records || [];
+      setOrderData((prev) => ({ ...prev, menuItems: list }));
+      console.log(list);
+    })
+    .catch((err: any) => setError(err.message))
+    .finally(() => {
+      setLoading(false);
+    });
+  }, []);
+
   const removeItemFromOrder = (itemIndex: number) => {
     setOrderData((prev) => {
-      const updatedItems = [...prev.items]
+      const updatedItems = [...prev.cartItems]
       updatedItems.splice(itemIndex, 1)
-      return { ...prev, items: updatedItems }
+      return { ...prev, cartItems: updatedItems }
     })
   }
 

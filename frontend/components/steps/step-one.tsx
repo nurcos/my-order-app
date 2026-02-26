@@ -4,7 +4,7 @@ import type { OrderData, MenuItem, CartItem } from "../ordering-wizard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { pb } from "@/lib/pb";
+
 
 interface StepOneProps {
   orderData: OrderData;
@@ -12,7 +12,7 @@ interface StepOneProps {
 }
 
 export function StepOne({ orderData, onUpdate }: StepOneProps) {
-  const [items, setItems] = useState<MenuItem[]>([]);
+  const menuItems = orderData.menuItems;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,19 +21,6 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
   const [selectedOptions, setSelectedOptions] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    pb.get("menu_items", "category,variants,option_types,option_types.options")
-      .then((data: any) => {
-        const list = Array.isArray(data) ? data : data.items || data.records || [];
-        setItems(list);
-        console.log(list);
-      })
-      .catch((err: any) => setError(err.message))
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
 
   const selectItem = (item: MenuItem | null) => {
     if (!item) return;
@@ -99,7 +86,8 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
       price: currentItem.base_price ?? 0,
       name: currentItem.name,
       variant: undefined,
-      options: []
+      options: [],
+      quantity: 1,
     };
 
     // Apply variants to cart item
@@ -125,7 +113,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
 
     // Add to cart
     onUpdate({
-      items: [...orderData.items, cartItem],
+      cartItems: [...orderData.cartItems, cartItem],
     });
 
     setCurrentItem(null);
@@ -142,7 +130,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
         {/* Group items by category */}
         {(() => {
           const categories: Record<string, MenuItem[]> = {};
-          items.forEach((item) => {
+          menuItems.forEach((item) => {
             const cat = item.expand?.category?.name || "Uncategorised";
             if (!categories[cat]) categories[cat] = [];
             categories[cat].push(item);
@@ -280,6 +268,7 @@ export function StepOne({ orderData, onUpdate }: StepOneProps) {
         <Button
           onClick={() => handleAddItem()}
           className="w-full bg-[#bb2f39] border-black border-2 hover:bg-primary/90 text-primary-foreground py-4"
+          disabled={!currentItem}
         >
           Add to cart
         </Button>

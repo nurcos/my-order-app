@@ -21,26 +21,20 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
   const calculateTotal = () => {
     let total = 0
 
-    // Food Items
-    orderData.items.forEach((item) => {
+    // Items
+    orderData.cartItems.forEach((item) => {
       total += calculateCartItemPrice(item)
     })
 
-    // Drinks
-    orderData.drinks.forEach((drink) => {
-      const drinkInfo = orderData.drinks.find(d => d.id === drink.id)
-      if (drinkInfo && drinkInfo.price) total += drinkInfo.price * 1
-    })
-
     // Delivery fee (only if there are items)
-    // if (orderData.items.length > 0) {
+    // if (orderData.cartItems.length > 0) {
     //   total += 2.0
     // }
 
     return total
   }
 
-  const isEmpty = orderData.items.length === 0 && orderData.drinks.length === 0
+  const isEmpty = orderData.cartItems.length === 0
 
   return (
     <div className="sticky top-8">
@@ -52,10 +46,10 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
         ) : (
           <div className="space-y-4">
             {/* Items */}
-            {orderData.items.length > 0 && (
+            {orderData.cartItems.length > 0 && (
               <div className="space-y-2">
-                <p className="font-semibold text-sm text-foreground">Items ({orderData.items.length})</p>
-                {orderData.items.map((item, index) => (
+                <p className="font-semibold text-sm text-foreground">Items ({orderData.cartItems.length})</p>
+                {orderData.cartItems.map((item, index) => (
                     <div key={`${item.id}-${index}`} className="text-xs bg-white/50 p-2 rounded border border-primary/20 relative">
                       <p className="font-medium text-foreground">#{index + 1}</p>
                       <p>{item.name}</p>
@@ -82,23 +76,6 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
                           ×
                         </button>
                     </div>
-                ))}
-              </div>
-            )}
-
-            {/* Drinks */}
-            {orderData.drinks.length > 0 && (
-              <div className="space-y-2 border-t border-primary/20 pt-2">
-                <p className="font-semibold text-sm text-foreground">Drinks</p>
-                {orderData.drinks.map((drink) => (
-                  <div key={drink.id} className="text-xs flex justify-between items-center">
-                    <span className="text-muted-foreground">
-                      {drink.name} x1
-                    </span>
-                    <span className="font-semibold text-primary">
-                      £{(drink.price || 0).toFixed(2)}
-                    </span>
-                  </div>
                 ))}
               </div>
             )}

@@ -6,3 +6,12 @@ export const pb = {
 		return data;
 	}
 }
+
+export const api = {
+	async checkPostCode(postCode1: string, postCode2: string): Promise<any | null> {
+		const res = await fetch(`/api/address?postCode1=${postCode1}&postCode2=${postCode2}`);
+		if (!res.ok) throw new Error(`Failed (${res.status})`);
+		const data = await res.json();
+		return data;
+	}
+}

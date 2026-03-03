@@ -28,8 +28,6 @@ export async function GET(request: Request) {
 		return NextResponse.json({ error: "Collection name is required" }, { status: 400 });
 	}
 
-	console.log(expandParams, 'this is expandParams')
-
 	const data = await pb.collection(collectionName).getFullList({
 		...expandParams ? { 'expand': expandParams } : {},
 	});

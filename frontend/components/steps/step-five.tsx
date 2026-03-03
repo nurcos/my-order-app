@@ -1,6 +1,6 @@
 "use client";
 
-import type { FoodItem, OrderData } from "../ordering-wizard";
+import type { OrderData, CartItem } from "../ordering-wizard";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,46 +20,6 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
     "card"
   );
 
-  function calculateFoodItemPrice(item: FoodItem): number {
-    let price = 0;
-    price += item.price as number;
-    item.options.forEach((option: any) => {
-      option.data.forEach((data: { price: number }) => {
-        price += data.price;
-      });
-    });
-    return price;
-  }
-
-  const calculateTotal = () => {
-    let total = 0;
-
-    // Food Items
-    orderData.items.forEach((item) => {
-      total += calculateFoodItemPrice(item);
-    });
-
-    // Drinks
-    orderData.drinks.forEach((drink) => {
-      const drinkInfo = orderData.drinks.find((d) => d.id === drink.id);
-      if (drinkInfo && drinkInfo.price)
-        total += drinkInfo.price * drink.quantity;
-    });
-
-    // Extras
-    orderData.extras.forEach((extra) => {
-      const extraInfo = orderData.extras.find((e) => e.id === extra.id);
-      if (extraInfo && extraInfo.price)
-        total += extraInfo.price * extra.quantity;
-    });
-
-    if (orderData.items.length > 0) {
-      total += 2.0;
-    }
-
-    return total;
-  };
-
   return (
     <div className="space-y-8">
       <div>
@@ -71,7 +31,7 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
           <div className="flex justify-between items-center mb-2">
             <span className="text-black">Order Total</span>
             <span className="text-3xl font-bold text-black">
-              £{calculateTotal().toFixed(2)}
+              £{(orderData.subtotal + (orderData.deliveryCost || 0)).toFixed(2)}
             </span>
           </div>
         </Card>

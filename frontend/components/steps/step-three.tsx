@@ -3,13 +3,63 @@
 import type { OrderData } from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { api } from "@/lib/pb"
 
-interface StepThreeProps {
-  orderData: OrderData
-  onUpdate: (updates: Partial<OrderData>) => void
-}
 
-export function StepThree({ orderData, onUpdate }: StepThreeProps) {
+export function StepThree({ orderData, onUpdate }: { orderData: OrderData; onUpdate: (updates: Partial<OrderData>) => void; }) {
+
+  // call /api/distance with both postcodes (customer + restaurant) and update orderData
+  async function checkPostCode(postCode: string): Promise<void> {
+    onUpdate({ deliveryDistanceMiles: 0, deliveryCost: 0 });
+
+    const postcodeRegex = /^(GIR0AA|[A-Z]{1,2}\d{1,2}[A-Z]?\d[A-Z]{2})$/i;
+
+    // normalize customer postcode and validate
+    let cleanedCustomer = postCode.trim().toUpperCase().replace(/\s+/g, "");
+    if (!cleanedCustomer) return;
+    if (!postcodeRegex.test(cleanedCustomer)) {
+      console.warn("Invalid UK customer postcode:", postCode);
+      return;
+    }
+    // format as "OUT IN"
+    postCode = cleanedCustomer.slice(0, -3) + " " + cleanedCustomer.slice(-3);
+
+    // if restaurant postcode exists, validate it too
+    const restaurantRaw = (orderData?.restaurant?.postcode ?? "").trim();
+    if (restaurantRaw) {
+      const cleanedRestaurant = restaurantRaw.toUpperCase().replace(/\s+/g, "");
+      if (!postcodeRegex.test(cleanedRestaurant)) {
+        console.warn("Invalid UK restaurant postcode:", restaurantRaw);
+        return;
+      }
+    }
+
+    const customerPc = postCode.trim();
+    const restaurantPc = (orderData?.restaurant?.postcode ?? "").trim();
+
+    if (!customerPc || !restaurantPc) return;
+    try {
+      const res = await fetch("/api/distance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerPostcode: customerPc, restaurantPostcode: restaurantPc }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        console.error("distance error", json);
+        console.log(orderData)
+        return;
+      }
+      // update orderData with distance and delivery cost
+      onUpdate({
+        deliveryDistanceMiles: json.distanceMiles,
+        deliveryCost: json.deliveryCost,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -62,7 +112,7 @@ export function StepThree({ orderData, onUpdate }: StepThreeProps) {
         <h2 className="text-2xl font-bold text-foreground mb-6">Delivery Information</h2>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Street Address *</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Address Line 1 *</label>
             <Input
               type="text"
               value={orderData.address}
@@ -71,6 +121,26 @@ export function StepThree({ orderData, onUpdate }: StepThreeProps) {
               className="w-full"
             />
           </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Address Line 2 *</label>
+              <Input
+                type="text"
+                value={orderData.address2}
+                onChange={(e) => onUpdate({ address2: e.target.value })}
+                placeholder="Building, floor, etc."
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Address Line 3</label>
+              <Input
+                type="text"
+                value={orderData.address3}
+                onChange={(e) => onUpdate({ address3: e.target.value })}
+                placeholder=""
+                className="w-full"
+              />
+            </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">City *</label>
@@ -78,18 +148,19 @@ export function StepThree({ orderData, onUpdate }: StepThreeProps) {
                 type="text"
                 value={orderData.city}
                 onChange={(e) => onUpdate({ city: e.target.value })}
-                placeholder="Paris"
+                placeholder="Diss"
                 className="w-full"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Post Code *</label>
               <Input
-                type="text"
-                value={orderData.zipCode}
-                onChange={(e) => onUpdate({ zipCode: e.target.value })}
-                placeholder="75001"
-                className="w-full"
+              type="text"
+              value={orderData.zipCode}
+              onChange={(e) => onUpdate({ zipCode: e.target.value })}
+              onBlur={(e) => checkPostCode(e.target.value)}
+              placeholder="IP25 1AA"
+              className="w-full"
               />
             </div>
             <div>

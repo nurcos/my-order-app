@@ -12,18 +12,6 @@ interface RestaurantSelectionProps {
   onBack: () => void
 }
 
-const RESTAURANTS: Restaurant[] = [
-  // {
-  //   id: "watton-hot-baguette",
-  //   name: "The Watton Hot Baguette",
-  //   strapline: "Handcrafted in Watton daily with the finest ingredients",
-  //   location: "Watton, Norfolk",
-  //   rating: 5,
-  //   deliveryTime: "25-35 mins",
-  //   min_order: 8,
-  // },
-]
-
 export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSelectionProps) {
 
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])

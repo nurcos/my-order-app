@@ -1,6 +1,6 @@
 "use client"
 
-import type { OrderData, MenuItem, CartItem } from "../ordering-wizard"
+import type { OrderData, MenuItem, CartItem} from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -12,7 +12,6 @@ interface StepTwoProps {
 
 export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
   const menuItems = orderData.menuItems;
-  const [currentItem, setCurrentItem] = useState<MenuItem | null>(null);
 
   // NEW: quantity map for each item (default 1)
   const [quantities, setQuantities] = useState<Record<string, number>>(() => {
@@ -25,35 +24,23 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
     setQuantities((prev) => ({ ...prev, [id]: Math.max(1, Math.floor(qty)) }));
   };
 
-  const addItemToCart = (item: MenuItem, qty?: number) => {
-    const quantity = qty ?? quantities[item.id] ?? 1;
-    const unit_price = Number(item.base_price ?? 0);
-    const line_total = unit_price * quantity;
+  const addItemToCart = (item: MenuItem, qty: number) => {
+    const newCartItems = [...orderData.cartItems];
 
-    var cartItem: CartItem = {
-      id: Math.random().toString(36).substr(2, 9),
-      price: item.base_price ?? 0,
-      name: item.name,
-      variant: undefined,
-      options: [],
-      quantity: 1,
-    };
+    for (let i = 0; i < qty; i++) {
+      const cartItem: CartItem = {
+        id: Math.random().toString(36).substr(2, 9),
+        price: item.base_price ?? 0,
+        name: item.name,
+        variant: undefined,
+        options: [],
+        quantity: 1,
+      };
+      newCartItems.push(cartItem);
+    }
+    
+    onUpdate({ cartItems: newCartItems, subtotal: (orderData.subtotal || 0) + (item.base_price ?? 0) * qty });
 
-    const current = Array.isArray(orderData.cartItems) ? [...orderData.cartItems] : [];
-
-    // merge with existing same item (menu_item_id + no variant + no selections)
-    const idx = current.findIndex(
-      (ci: any) =>
-        ci.menu_item_id === item.id &&
-        (ci.variant_id === null || ci.variant_id === undefined) &&
-        (!ci.selections || (Array.isArray(ci.selections) && ci.selections.length === 0))
-    );
-
-
-    current.push(cartItem);
-
-
-    onUpdate({ cartItems: current });
     // reset qty for item to 1
     setQty(item.id, 1);
   };
@@ -108,7 +95,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
                     </div>
 
                     <div className="flex gap-2 mt-3">
-                      <Button onClick={() => addItemToCart(item)} className="bg-[#bb2f39] border-black border-2">
+                      <Button onClick={() => addItemToCart(item, qty)} className="bg-[#bb2f39] border-black border-2">
                         Add to cart
                       </Button>
                     </div>

@@ -20,3 +20,15 @@ Reset migrations
 Delete all files in pb_migrations folder
 Run migrate history-sync to clear _migrations table
 Run migrate collections to create a new migration mirroring the current collections state
+
+
+
+to do:
+
+connect stripe
+check if store is open/store open hours
+
+
+checkout endpoint:
+check store open
+check delivery cost

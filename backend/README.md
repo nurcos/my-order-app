@@ -32,3 +32,5 @@ check if store is open/store open hours
 checkout endpoint:
 check store open
 check delivery cost
+add error popups
+email confirmation

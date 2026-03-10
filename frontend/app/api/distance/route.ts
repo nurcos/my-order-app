@@ -76,8 +76,6 @@ export async function POST(req: Request) {
     const raw = base + perMile * distanceMiles;
     const cost = Math.round(raw * 100) / 100;
 
-    console.log(`Distance: ${distanceMiles.toFixed(2)} miles, Cost: £${cost.toFixed(2)}`);
-
     return NextResponse.json({
       distanceMiles,
       deliveryCost: cost,

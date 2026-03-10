@@ -7,13 +7,12 @@ import { useState } from "react"
 
 interface StepTwoProps {
   orderData: OrderData
+  menuItems: MenuItem[]
+  addToCart: (item: CartItem) => void
   onUpdate: (updates: Partial<OrderData>) => void
 }
 
-export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
-  const menuItems = orderData.menuItems;
-
-  // NEW: quantity map for each item (default 1)
+export function StepTwo({ orderData, menuItems, addToCart, onUpdate }: StepTwoProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>(() => {
     const map: Record<string, number> = {};
     (menuItems || []).forEach((m: MenuItem) => { map[m.id] = 1 });
@@ -25,21 +24,19 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
   };
 
   const addItemToCart = (item: MenuItem, qty: number) => {
-    const newCartItems = [...orderData.cartItems];
+    var cartItem: CartItem | null = null;
 
     for (let i = 0; i < qty; i++) {
-      const cartItem: CartItem = {
-        id: Math.random().toString(36).substr(2, 9),
-        price: item.base_price ?? 0,
+      cartItem = {
+        cart_id: Math.random().toString(36).substr(2, 9),
+        id: item.id,
         name: item.name,
-        variant: undefined,
+        variant: item.expand.variants[0],
         options: [],
         quantity: 1,
       };
-      newCartItems.push(cartItem);
+      addToCart(cartItem);
     }
-    
-    onUpdate({ cartItems: newCartItems, subtotal: (orderData.subtotal || 0) + (item.base_price ?? 0) * qty });
 
     // reset qty for item to 1
     setQty(item.id, 1);
@@ -52,7 +49,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {menuItems.map((item) => {
             if (!item || !item.expand?.category || item.expand.category.priority > 0) return null;
-            const inCart = orderData.cartItems?.some((d: any) => d.menu_item_id === item.id) ?? false;
+            const inCart = orderData.cartItems?.some((d: any) => d.id === item.id) ?? false;
             const qty = quantities[item.id] ?? 1;
 
             return (
@@ -65,7 +62,7 @@ export function StepTwo({ orderData, onUpdate }: StepTwoProps) {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-bold text-lg text-foreground">{item.name}</h3>
-                    <p className="text-primary font-bold">£{Number(item.base_price ?? 0).toFixed(2)}</p>
+                    <p className="text-primary font-bold">£{Number(item.expand.variants?.[0]?.base_price ?? 0).toFixed(2)}</p>
                   </div>
 
                   <div className="flex flex-col items-end gap-2">

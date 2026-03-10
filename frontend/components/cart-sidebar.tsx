@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 
 interface CartSidebarProps {
   orderData: OrderData
-  removeItemFromOrder: (itemIndex: number) => void
+  removeItemFromOrder: (item: CartItem, index: number) => void
 }
 
 export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps) {
@@ -25,7 +25,7 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
               <div className="space-y-2">
                 <p className="font-semibold text-sm text-foreground">Items ({orderData.cartItems.length})</p>
                 {orderData.cartItems.map((item, index) => (
-                    <div key={`${item.id}-${index}`} className="text-xs bg-white/50 p-2 rounded border border-primary/20 relative">
+                    <div key={`${item.cart_id}-${index}`} className="text-xs bg-white/50 p-2 rounded border border-primary/20 relative">
                       <p>{item.name}</p>
                       {item.options && item.options.length > 0 && (
                         <>
@@ -40,11 +40,11 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
                         ))}
                         </>
                       )}
-                      <p className="font-semibold text-primary mt-1">£{item.price.toFixed(2)}</p>
+                      <p className="font-semibold text-primary mt-1">£{item.variant.base_price.toFixed(2)}</p>
                         <button
                           className="absolute top-0 right-2 text-xl text-red-500 hover:underline"
                           onClick={() => {
-                            removeItemFromOrder(index)
+                            removeItemFromOrder(item, index)
                           }}
                         >
                           ×

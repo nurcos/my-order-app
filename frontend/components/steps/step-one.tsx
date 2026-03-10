@@ -3,12 +3,13 @@
 import type { OrderData, MenuItem, CartItem } from "../ordering-wizard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
+import { pb } from "@/lib/pb";
+import { on } from "events";
 
 
-export function StepOne({ orderData, onUpdate }: { orderData: OrderData; onUpdate: (updates: Partial<OrderData>) => void; }) {
-  const menuItems = orderData.menuItems;
+export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderData: OrderData; menuItems: MenuItem[]; addToCart: (item: CartItem) => void; onUpdate: (updates: Partial<OrderData>) => void; }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +35,11 @@ export function StepOne({ orderData, onUpdate }: { orderData: OrderData; onUpdat
         setSelectedOptions(optionsArray);
       }
 
+      if(item.expand?.variants?.length === 1) {
+        setCurrentItem(item);
+        setSelectedVariant(item.expand.variants[0]);
+        return;
+      }
       setModalOpen(true);
       return;
     }
@@ -88,17 +94,17 @@ export function StepOne({ orderData, onUpdate }: { orderData: OrderData; onUpdat
     if (!currentItem) return;
 
     var cartItem: CartItem = {
-      id: Math.random().toString(36).substr(2, 9),
-      price: currentItem.base_price ?? 0,
+      cart_id: Math.random().toString(36).substr(2, 9),
+      id: currentItem.id,
       name: currentItem.name,
-      variant: undefined,
+      variant: selectedVariant,
       options: [],
       quantity: 1,
     };
 
     // Apply variants to cart item
     if (currentItem.expand?.variants) {
-      cartItem.price = selectedVariant?.base_price ?? cartItem.price;
+      cartItem.variant.price = selectedVariant?.base_price ?? 0;
       cartItem.variant = selectedVariant;
     }
 
@@ -117,14 +123,7 @@ export function StepOne({ orderData, onUpdate }: { orderData: OrderData; onUpdat
       cartItem.options = options;
     }
 
-    // Add to cart
-    onUpdate({
-      cartItems: [...orderData.cartItems, cartItem],
-      subtotal: (orderData.subtotal ?? 0) + (cartItem.price ?? 0) * (cartItem.quantity ?? 1),
-    });
-
-    setCurrentItem(null);
-
+    addToCart(cartItem);
     closeModal();
   };
 
@@ -318,7 +317,7 @@ export function StepOne({ orderData, onUpdate }: { orderData: OrderData; onUpdat
       <div className="bg-[#bb2f39]/5 p-4 rounded-lg border border-secondary">
         {currentItem && (
           <p className="text-3xl font-bold text-primary mb-4">
-            £{currentItem.base_price?.toFixed(2) || "0.00"}
+            £{currentItem.expand.variants?.[0]?.base_price?.toFixed(2) || "0.00"}
           </p>
         )}
         <Button

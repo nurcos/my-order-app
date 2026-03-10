@@ -1,13 +1,14 @@
 "use client"
 
-import type { OrderData, CartItem } from "../ordering-wizard"
+import type { MenuItem, OrderData } from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 
 interface StepFourProps {
   orderData: OrderData
+  menuItems: MenuItem[]
 }
 
-export function StepFour({ orderData }: StepFourProps) {
+export function StepFour({ orderData, menuItems }: StepFourProps) {
 
   return (
     <div className="space-y-6">
@@ -19,7 +20,7 @@ export function StepFour({ orderData }: StepFourProps) {
           <h3 className="font-bold text-lg text-foreground mb-3">Your Items ({orderData.cartItems.length})</h3>
           <div className="space-y-3">
             {orderData.cartItems.map((item, index) => (
-              <div key={item.id} className="flex justify-between items-center border-b border-border py-2 last:border-b-0">
+              <div key={item.cart_id} className="flex justify-between items-center border-b border-border py-2 last:border-b-0">
                 <div className="flex justify-between">
                   <span>{item.name}</span>
                 </div>
@@ -61,7 +62,7 @@ export function StepFour({ orderData }: StepFourProps) {
           <div>
             <p className="text-muted-foreground">Address</p>
             <p className="font-semibold">
-              {orderData.address}, {orderData.city} {orderData.zipCode}
+              {orderData.address}, {orderData.address2}, {orderData.address3}, {orderData.city} {orderData.zipCode}
             </p>
           </div>
           <div>

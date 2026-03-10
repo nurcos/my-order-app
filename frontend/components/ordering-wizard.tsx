@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StepOne } from "./steps/step-one";
@@ -12,6 +12,7 @@ import { CartSidebar } from "./cart-sidebar";
 import Image from "next/image";
 import { OrderComplete } from "./steps/order-complete";
 import { pb } from "@/lib/pb";
+import { toast } from 'react-toastify';
 
 export interface Restaurant {
   id: string;
@@ -20,16 +21,16 @@ export interface Restaurant {
   postcode: string;
   location: string;
   rating: number;
-  deliveryTime: string;
+  delivery_time: string;
   min_order: number;
 }
 
 export interface CartItem {
+  cart_id: string;
   id: string;
   name: string;
-  variant?: string;
+  variant?: any;
   options?: Record<string, any>;
-  price: number;
   quantity: number;
 }
 
@@ -42,12 +43,12 @@ export interface MenuItem {
   base_price: number;
   expand: any;
   quantity?: number;
+  variants: Array<any>;
 }
 
 export interface OrderData {
+  id?: string;
   restaurant: Restaurant;
-
-  menuItems: MenuItem[];
 
   // Step 1 & 2: Multiple items
   cartItems: CartItem[];
@@ -89,7 +90,6 @@ export function OrderingWizard({
 
   const [orderData, setOrderData] = useState<OrderData>({
     restaurant: selectedRestaurant ? selectedRestaurant : (null as any),
-    menuItems: [],
     cartItems: [],
     firstName: "",
     lastName: "",
@@ -106,17 +106,49 @@ export function OrderingWizard({
     deliveryCost: 0,
   });
 
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const orderInitialised = useRef(false);
 
   useEffect(() => {
-    pb.get("menu_items", "category,variants,option_types,option_types.options")
+    if (orderInitialised.current) return;
+    orderInitialised.current = true;
+
+    if (typeof window === "undefined") return;
+
+    const order = localStorage.getItem("order");
+    if (order) {
+      try {
+        const parsedOrder = JSON.parse(order);
+        setOrderData((prev) => ({ ...prev, id: parsedOrder.id, cartItems: parsedOrder.cartItems ?? [] }));
+      } catch (e) {
+        localStorage.removeItem("order");
+      }
+      return;
+    }
+
+    // create a new order record with no data (empty object is fine)
+    pb.post("orders", {})
+      .then((res) => {
+        localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [] }));
+        setOrderData((prev) => ({ ...prev, id: res.id }));
+      })
+      .catch((err) => {
+        console.error("Error creating order:", err);
+        toast.error("Error creating order");
+      });
+  }, []);
+
+  useEffect(() => {
+    pb.get("menu_items", "", "category,variants,option_types,option_types.options")
       .then((data: any) => {
         const list = Array.isArray(data)
           ? data
           : data.items || data.records || [];
-        setOrderData((prev) => ({ ...prev, menuItems: list }));
-        console.log(list);
+        setMenuItems((prev) => [...prev, ...list]);
+        console.log("Menu items fetched:", list);
       })
       .catch((err: any) => setError(err.message))
       .finally(() => {
@@ -124,22 +156,42 @@ export function OrderingWizard({
       });
   }, []);
 
-  const removeItemFromOrder = (itemIndex: number) => {
-    setOrderData((prev) => {
-      const updatedItems = [...prev.cartItems];
-      const newSubtotal = updatedItems.reduce((sum, item, idx) => {
-        if (idx === itemIndex) return sum;
-        const price =
-          typeof item.price === "number" ? item.price : Number(item.price || 0);
-        const qty =
-          typeof item.quantity === "number"
-            ? item.quantity
-            : Number(item.quantity || 0);
-        return sum + price * qty;
-      }, 0);
-      prev.subtotal = newSubtotal;
-      updatedItems.splice(itemIndex, 1);
-      return { ...prev, cartItems: updatedItems, subtotal: newSubtotal };
+  const addToCart = (item: CartItem) => { 
+    if(!item || !orderData.id) return;
+
+    const order_ids = [...(orderData?.cartItems || []).map((ci) => ci.variant.id), item.variant.id];
+
+    pb.update("orders", orderData.id, {
+      item_ids: JSON.stringify(order_ids),
+    } ).then((res) => {
+      setOrderData((prev) => ({
+        ...prev,
+        cartItems: [...prev.cartItems, item],
+        subtotal: res.subtotal || 0
+      }));
+      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item] }));
+    }).catch((error) => {
+      console.error("Error adding item to order:", error);
+    });
+  };
+
+  const removeItemFromOrder = (item: CartItem, index: number) => {
+    if(!item || !orderData.id) return;
+
+    const order_ids = [...(orderData?.cartItems || []).map((ci) => ci.variant.id)];
+    order_ids.splice(index, 1);
+
+    pb.update("orders", orderData.id, {
+      item_ids: JSON.stringify(order_ids),
+    } ).then((res) => {
+      setOrderData((prev) => ({
+        ...prev,
+        cartItems: prev.cartItems.filter((_, i) => i !== index),
+        subtotal: res.subtotal || 0
+      }));
+      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item] }));
+    }).catch((error) => {
+      console.error("Error removing item from order:", error);
     });
   };
 
@@ -147,8 +199,6 @@ export function OrderingWizard({
     setOrderData((prev) => ({
       ...prev,
       items: [],
-      drinks: [],
-      extras: [],
       total: 0,
     }));
   };
@@ -180,13 +230,13 @@ export function OrderingWizard({
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <StepOne orderData={orderData} onUpdate={handleUpdateOrder} />;
+        return <StepOne orderData={orderData} menuItems={menuItems} addToCart={addToCart} onUpdate={handleUpdateOrder} />;
       case 2:
-        return <StepTwo orderData={orderData} onUpdate={handleUpdateOrder} />;
+        return <StepTwo orderData={orderData} menuItems={menuItems} addToCart={addToCart} onUpdate={handleUpdateOrder} />;
       case 3:
-        return <StepThree orderData={orderData} onUpdate={handleUpdateOrder} />;
+        return <StepThree orderData={orderData} menuItems={menuItems} onUpdate={handleUpdateOrder} />;
       case 4:
-        return <StepFour orderData={orderData} />;
+        return <StepFour orderData={orderData} menuItems={menuItems} />;
       case 5:
         return <StepFive handleNext={handleNext} orderData={orderData} />;
       case 6:

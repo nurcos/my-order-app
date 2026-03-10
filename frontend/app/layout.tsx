@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { ToastContainer } from 'react-toastify';
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased pt-[4rem] bg-[#19315f]`}>
+        <ToastContainer/>
         {children}
       </body>
     </html>

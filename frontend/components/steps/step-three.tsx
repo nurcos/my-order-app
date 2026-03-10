@@ -1,12 +1,12 @@
 "use client"
 
-import type { OrderData } from "../ordering-wizard"
+import type { MenuItem, OrderData } from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { api } from "@/lib/pb"
 
 
-export function StepThree({ orderData, onUpdate }: { orderData: OrderData; onUpdate: (updates: Partial<OrderData>) => void; }) {
+export function StepThree({ orderData, onUpdate, menuItems }: { orderData: OrderData; menuItems: MenuItem[]; onUpdate: (updates: Partial<OrderData>) => void; }) {
 
   // call /api/distance with both postcodes (customer + restaurant) and update orderData
   async function checkPostCode(postCode: string): Promise<void> {

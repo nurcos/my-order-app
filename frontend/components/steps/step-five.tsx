@@ -1,10 +1,11 @@
 "use client";
 
-import type { OrderData, CartItem } from "../ordering-wizard";
+import type { OrderData } from "../ordering-wizard";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { toast } from 'react-toastify';
 
 interface StepFiveProps {
   orderData: OrderData;
@@ -19,6 +20,31 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
   const [paymentMethod, setPaymentMethod] = useState<"card" | "google/apple">(
     "card"
   );
+
+  const completeOrder = () => {
+    fetch("/api/complete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(orderData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          toast.error("Failed to complete order. Please try again. Error: " + response.statusText);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        toast.success("Order completed successfully!");
+        // Handle successful order completion (e.g., show confirmation)
+        handleNext();
+      })
+      .catch((error) => {
+        toast.error("Failed to complete order. Please try again. Error: " + error.message);
+        // Handle error (e.g., show error message)
+      });
+  };
 
   return (
     <div className="space-y-8">
@@ -122,7 +148,7 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
             </div>
 
             <Button
-              onClick={handleNext}
+              onClick={completeOrder}
               className="w-full py-6 text-lg bg-primary hover:bg-accent text-primary-foreground font-bold mt-4"
             >
               Complete Payment

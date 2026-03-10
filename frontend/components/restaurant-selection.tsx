@@ -6,6 +6,7 @@ import Image from "next/image"
 import type { Restaurant } from "./ordering-wizard"
 import { useEffect, useRef, useState } from "react"
 import { pb } from "../lib/pb"
+import { getClosingTime, getOpeningTime, isOpen } from "../lib/utils"
 
 interface RestaurantSelectionProps {
   onSelectRestaurant: (restaurant: Restaurant) => void
@@ -25,9 +26,10 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
     didFetch.current = true
 
     setLoading(true)
-    pb.get("stores")
+    pb.get("stores", "", "open_hours_via_store")
       .then((data:any) => {
         setRestaurants(data)
+        console.log(data)
       })
       .catch((err:any) => setError(err.message))
       .finally(() => {
@@ -68,7 +70,6 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
             <Card
               key={restaurant.id}
               className="p-6 hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-primary"
-              onClick={() => onSelectRestaurant(restaurant)}
             >
               <div className="space-y-4">
                 <div className="flex gap-1 justify-between">
@@ -90,16 +91,26 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
                     <span className="font-semibold text-primary">{restaurant.rating}</span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <p>⏱️ 25-35 minutes</p>
+                    <p>⏱️ {restaurant.delivery_time}</p>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-muted">
-                  <p className="text-xs text-muted-foreground">Min. order: £{restaurant.min_order}</p>
+                <div className="pt-2 flex items-center justify-between  border-t border-muted">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Min. order: £{restaurant.min_order}</p>
+                  </div>
+                  <div>
+                    {isOpen(restaurant) ? (
+                      <p className="text-xs text-muted-foreground">Open. Closes at {getClosingTime(restaurant).getHours()}:{String(getClosingTime(restaurant).getMinutes()).padStart(2, "0")}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Closed. Opens at {getOpeningTime(restaurant).getHours()}:{String(getOpeningTime(restaurant).getMinutes()).padStart(2, "0")}</p>
+                    )}
+                  </div>
                 </div>
 
                 <Button
                   onClick={() => onSelectRestaurant(restaurant)}
+                  disabled={!isOpen(restaurant)}
                   className="w-full bg-[#bb2f39] hover:bg-primary/90 text-primary-foreground border border-2 border-black font-semibold"
                 >
                   Order from Here

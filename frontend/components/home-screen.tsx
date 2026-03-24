@@ -16,7 +16,7 @@ export function HomeScreen({ onStartOrder }: HomeScreenProps) {
           <div className="text-center space-y-8">
             <div className="space-y-4">
               <Image
-                src="/img/new-logo.png"
+                src="/img/logo.png"
                 alt="Baguette"
                 width={120}
                 height={120}

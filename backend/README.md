@@ -34,3 +34,4 @@ check store open
 check delivery cost
 add error popups
 email confirmation
+show added to cart animation

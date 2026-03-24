@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Image from "next/image";
+import { ca } from "date-fns/locale";
 
 
 export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderData: OrderData; menuItems: MenuItem[]; addToCart: (item: CartItem) => void; onUpdate: (updates: Partial<OrderData>) => void; }) {
@@ -106,20 +107,9 @@ export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderDa
       cartItem.variant = selectedVariant;
     }
 
-    //apply options to cart item
-    if (currentItem.expand?.option_types) {
-      let options: any[] = [];
-      currentItem.expand.option_types.forEach((optionType: any) => {
-        if (optionType.expand?.options) {
-          optionType.expand.options.forEach((option: any) => {
-            if (option.selected) {
-              options.push(option);
-            }
-          });
-        }
-      });
-      cartItem.options = options;
-    }
+    cartItem.options = selectedOptions;
+
+    console.log(cartItem);
 
     addToCart(cartItem);
     closeModal();
@@ -311,7 +301,6 @@ export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderDa
         </div>
       )}
 
-      {/* small persistent checkout card */}
       <div className="bg-[#bb2f39]/5 p-4 rounded-lg border border-secondary">
         {currentItem && (
           <p className="text-3xl font-bold text-primary mb-4">

@@ -21,25 +21,26 @@ export function StepFour({ orderData, menuItems }: StepFourProps) {
           <div className="space-y-3">
             {orderData.cartItems.map((item, index) => (
               <div key={item.cart_id} className="flex justify-between items-center border-b border-border py-2 last:border-b-0">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center gap-4">
                   <span>{item.name}</span>
-                </div>
-                  {item.options && item.options.length > 0 && (
-                    <>
-                    {item.options.map((option: any) => (
-                      <p className="text-muted-foreground" key={option.id}>
-                        {option.name}:
-                        {option.data.map((data: any, index: number) => (
-                        <span className="text-muted-foreground ml-1" key={index}>
-                          {data.name}
-                          {index < option.data.length - 1 && ","}
-                        </span>
+                  <span className="text-muted-foreground ml-2">
+                    {item.quantity && item.quantity > 1 && <span className="mr-2">x{item.quantity}</span>}
+                      {item.options && item.options.length > 0 && (
+                        <>
+                        {item.options.map((optionType: any) => (
+                          <p className="text-muted-foreground" key={optionType.id}>
+                            {optionType.name}:
+                            {optionType.options.map((option: any, dataIndex: number) => (
+                              <span className="text-muted-foreground ml-1" key={dataIndex}>
+                                {option ? option.name : "None"}
+                              </span>
+                            ))}
+                          </p>
                         ))}
-                        { option.data.length === 0 && <span className="text-muted-foreground ml-1">None</span> }
-                      </p>
-                    ))}
-                    </>
-                  )}
+                        </>
+                      )}
+                  </span>
+                </div>
                   <div className="font-bold text-primary pt-1 mt-1 text-right text-right">
                     £{item.variant.base_price.toFixed(2)}
                   </div>

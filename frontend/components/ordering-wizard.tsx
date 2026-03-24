@@ -275,7 +275,7 @@ export function OrderingWizard({
           <div className="lg:col-span-3">
             <div className="text-center mb-12">
               <Image
-                src="/img/new-logo.png"
+                src="/img/logo.png"
                 alt="MyOrder App"
                 width={100}
                 height={100}

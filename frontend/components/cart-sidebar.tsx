@@ -31,13 +31,14 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
                       <p>{item.name}</p>
                       {item.options && item.options.length > 0 && (
                         <>
-                        {item.options.map((option: any) => (
-                          <p className="text-muted-foreground" key={option.id}>
-                            {option.name}:
-                              <span className="text-muted-foreground ml-1" key={index}>
-                                {option.name}
+                        {item.options.map((optionType: any) => (
+                          <p className="text-muted-foreground" key={optionType.id}>
+                            {optionType.name}:
+                            {optionType.options.map((option: any, dataIndex: number) => (
+                              <span className="text-muted-foreground ml-1" key={dataIndex}>
+                                {option ? option.name : "None"}
                               </span>
-                            {/* { option.data.length === 0 && <span className="text-muted-foreground ml-1">None</span> } */}
+                            ))}
                           </p>
                         ))}
                         </>

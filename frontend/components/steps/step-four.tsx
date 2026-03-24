@@ -1,6 +1,6 @@
 "use client"
 
-import type { MenuItem, OrderData } from "../ordering-wizard"
+import { getCartTotal, type MenuItem, type OrderData } from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 
 interface StepFourProps {
@@ -78,7 +78,7 @@ export function StepFour({ orderData, menuItems }: StepFourProps) {
       <Card className="gap-0 p-6 bg-primary/10 border-2 border-[#bb2f39]">
         <div className="flex justify-between items-center mb-2">
           <span>Subtotal</span>
-          <span>£{orderData.subtotal.toFixed(2)}</span>
+          <span>£{getCartTotal(orderData.cartItems).toFixed(2)}</span>
         </div>
         <div className="mt-4 flex justify-between items-center border-b border-border">
           <span>Delivery Fee</span>
@@ -89,7 +89,7 @@ export function StepFour({ orderData, menuItems }: StepFourProps) {
         </div>
         <div className="flex justify-between items-center border-t-2 border-black pt-4">
           <span className="text-xl font-bold text-black">Total</span>
-          <span className="text-3xl font-bold text-black">£{(orderData.subtotal + (orderData.deliveryCost || 0)).toFixed(2)}</span>
+          <span className="text-3xl font-bold text-black">£{(getCartTotal(orderData.cartItems) + (orderData.deliveryCost || 0)).toFixed(2)}</span>
         </div>
       </Card>
     </div>

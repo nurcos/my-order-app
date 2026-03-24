@@ -1,6 +1,8 @@
 "use client"
 
 import type { OrderData, CartItem } from "./ordering-wizard"
+import { getCartTotal } from "./ordering-wizard"
+
 import { Card } from "@/components/ui/card"
 
 interface CartSidebarProps {
@@ -66,7 +68,7 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
             <div className="border-t-2 border-primary pt-3 mt-3">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-foreground">Subtotal</span>
-                <span className="text-2xl font-bold text-primary">£{orderData.subtotal.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-primary">£{getCartTotal(orderData.cartItems).toFixed(2)}</span>
               </div>
             </div>
           </div>

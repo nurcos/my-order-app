@@ -23,6 +23,7 @@ function auth() {
 export async function GET(request: Request) {
   auth();
 
+
   // Get query params from the request URL
   const { searchParams } = new URL(request.url);
   const collectionName = searchParams.get("collection");
@@ -33,6 +34,12 @@ export async function GET(request: Request) {
       { error: "Collection name is required" },
       { status: 400 },
     );
+  }
+
+  const id = searchParams.get("id");
+  if (id) {
+    const data = await pb.collection(collectionName).getOne(id, expandParams ? { expand: expandParams } : {});
+    return NextResponse.json(data, { status: data ? 200 : 404 });
   }
 
   const data = await pb.collection(collectionName).getFullList({
@@ -86,8 +93,6 @@ export async function PATCH(request: Request) {
       idCountMap[itemId] = (idCountMap[itemId] ?? 0) + 1;
     }
 
-    console.log("idCountMap (id -> quantity)", idCountMap);
-
     // fetch each unique id once
     const uniqueIds = Object.keys(idCountMap);
     const items = await Promise.all(
@@ -102,22 +107,16 @@ export async function PATCH(request: Request) {
       ),
     );
 
-    console.log("fetched items", items);
-
     // compute subtotal: price * quantity
     let newSubtotal = 0;
     for (const item of items) {
       if (!item) continue;
       const qty = idCountMap[item.id] ?? 1;
       const price = Number(item.base_price ?? 0);
-      console.log(
-        `item ${item.id} price=${price} qty=${qty} line=${price * qty}`,
-      );
       newSubtotal += price * qty;
     }
 
     data.subtotal = Math.round(newSubtotal * 100) / 100;
-    console.log("computed subtotal", data.subtotal);
   }
 
   const updated = await pb.collection(collection).update(id, data);

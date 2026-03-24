@@ -66,7 +66,6 @@ export interface OrderData {
     city: string;
     zipCode: string;
   };
-  subtotal: number;
   deliveryTime: string;
   deliveryDistanceMiles: number;
   deliveryCost: number;
@@ -84,6 +83,15 @@ interface OrderingWizardProps {
   selectedRestaurant?: Restaurant | null;
   handleBack: () => void;
 }
+
+export const getCartTotal = (items: CartItem[]): number => {
+  return items.reduce((total, item) => {
+    const qty = item.quantity ?? 1;
+    const rawPrice = item.variant?.price ?? item.variant?.base_price ?? 0;
+    const price = typeof rawPrice === "string" ? parseFloat(rawPrice) || 0 : rawPrice || 0;
+    return total + price * qty;
+  }, 0);
+};
 
 export function OrderingWizard({
   handleBack,
@@ -105,7 +113,6 @@ export function OrderingWizard({
       city: "",
       zipCode: "",
     },
-    subtotal: 0,
     deliveryTime: "asap",
     deliveryDistanceMiles: 0,
     deliveryCost: 0,
@@ -127,7 +134,7 @@ export function OrderingWizard({
     if (order) {
       try {
         const parsedOrder = JSON.parse(order);
-        setOrderData((prev) => ({ ...prev, id: parsedOrder.id, cartItems: parsedOrder.cartItems ?? [], subtotal: parsedOrder.subtotal ?? 0 }));
+        setOrderData((prev) => ({ ...prev, id: parsedOrder.id, cartItems: parsedOrder.cartItems ?? [] }));
       } catch (e) {
         localStorage.removeItem("order");
       }
@@ -137,7 +144,7 @@ export function OrderingWizard({
     // create a new order record with no data (empty object is fine)
     pb.post("orders", {})
       .then((res) => {
-        localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [], subtotal: 0 }));
+        localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [] }));
         setOrderData((prev) => ({ ...prev, id: res.id }));
       })
       .catch((err) => {
@@ -171,9 +178,8 @@ export function OrderingWizard({
       setOrderData((prev) => ({
         ...prev,
         cartItems: [...prev.cartItems, item],
-        subtotal: res.subtotal || 0
       }));
-      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item], subtotal: res.subtotal || 0 }));
+      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item] }));
     }).catch((error) => {
       console.error("Error adding item to order:", error);
     });
@@ -191,7 +197,6 @@ export function OrderingWizard({
       setOrderData((prev) => ({
         ...prev,
         cartItems: prev.cartItems.filter((_, i) => i !== index),
-        subtotal: res.subtotal || 0
       }));
       localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: orderData.cartItems.filter((_, i) => i !== index) }));
     }).catch((error) => {
@@ -203,7 +208,6 @@ export function OrderingWizard({
     setOrderData((prev) => ({
       ...prev,
       items: [],
-      total: 0,
     }));
   };
 

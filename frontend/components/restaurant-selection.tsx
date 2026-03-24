@@ -29,7 +29,6 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
     pb.get("stores", "", "open_hours_via_store")
       .then((data:any) => {
         setRestaurants(data)
-        console.log(data)
       })
       .catch((err:any) => setError(err.message))
       .finally(() => {

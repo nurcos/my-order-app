@@ -1,6 +1,7 @@
 export const pb = {
   async get(collectionName: string, id?: string, expandParams?: string) {
     const qs = `collection=${encodeURIComponent(collectionName)}${id ? `&id=${encodeURIComponent(id)}` : ""}${expandParams ? "&expand=" + encodeURIComponent(expandParams) : ""}`;
+    console.log(qs)
     const res = await fetch(`/api/pb?${qs}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`Failed (${res.status})`);
     return res.json();

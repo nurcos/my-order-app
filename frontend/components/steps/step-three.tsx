@@ -15,13 +15,13 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
   useEffect(() => {
     if (!orderData.id || fetchedOrderRef.current) return;
     fetchedOrderRef.current = true;
+    console.log(orderData.id)
     pb.get("orders", orderData.id)
       .then((res) => {
         if (res && res[0]) {
           onUpdate({
             delivery_info: res[0].delivery_info,
           });
-          console.log(res[0])
           checkPostCode(res[0].delivery_info.zipCode);
         }
       })

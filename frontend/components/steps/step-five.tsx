@@ -1,6 +1,6 @@
 "use client";
 
-import type { OrderData } from "../ordering-wizard";
+import { getCartTotal, type OrderData } from "../ordering-wizard";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -57,13 +57,13 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
           <div className="flex justify-between items-center mb-2">
             <span className="text-black">Order Total</span>
             <span className="text-3xl font-bold text-black">
-              £{(orderData.subtotal + (orderData.deliveryCost || 0)).toFixed(2)}
+              £{(getCartTotal(orderData.cartItems) + (orderData.deliveryCost || 0)).toFixed(2)}
             </span>
           </div>
         </Card>
 
         <div className="flex justify-center space-x-4 mb-6 mt-6">
-            <Button
+          <Button
             onClick={() => {
               setPaymentMethod("card");
             }}
@@ -74,7 +74,7 @@ export function StepFive({ handleNext, orderData }: StepFiveProps) {
             }`}
             >
             Card Payment
-            </Button>
+          </Button>
           <Button
             onClick={() => {
               setPaymentMethod("google/apple");

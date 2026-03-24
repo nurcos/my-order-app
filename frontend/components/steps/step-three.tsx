@@ -3,10 +3,32 @@
 import type { MenuItem, OrderData } from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { api } from "@/lib/pb"
+import { api, pb } from "@/lib/pb"
+import { useEffect, useRef } from "react"
+import { toast } from 'react-toastify';
 
 
 export function StepThree({ orderData, onUpdate, menuItems }: { orderData: OrderData; menuItems: MenuItem[]; onUpdate: (updates: Partial<OrderData>) => void; }) {
+
+  const fetchedOrderRef = useRef(false);
+
+  useEffect(() => {
+    if (!orderData.id || fetchedOrderRef.current) return;
+    fetchedOrderRef.current = true;
+    pb.get("orders", orderData.id)
+      .then((res) => {
+        if (res && res[0]) {
+          onUpdate({
+            delivery_info: res[0].delivery_info,
+          });
+          console.log(res[0])
+          checkPostCode(res[0].delivery_info.zipCode);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch order", err);
+      });
+  }, [orderData.id, onUpdate]);
 
   // call /api/distance with both postcodes (customer + restaurant) and update orderData
   async function checkPostCode(postCode: string): Promise<void> {
@@ -45,18 +67,32 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
         body: JSON.stringify({ customerPostcode: customerPc, restaurantPostcode: restaurantPc }),
       });
       const json = await res.json();
+
       if (!res.ok) {
-        console.error("distance error", json);
-        console.log(orderData)
+        toast.error("There was an error fetching your delivery location. Please contact us!");
         return;
       }
+
+      if (json.distanceMiles > 30) {
+        toast.error("Sorry, we don't deliver to your area.");
+        return;
+      }
+
       // update orderData with distance and delivery cost
       onUpdate({
         deliveryDistanceMiles: json.distanceMiles,
         deliveryCost: json.deliveryCost,
       });
+      try {
+        if(!orderData.id) return;
+        const res = await pb.update("orders", orderData.id, {
+          delivery_price: json.deliveryCost,
+        });
+      } catch (e) {
+        toast.error("There was an error updating your order. Please contact us!");
+      }
     } catch (e) {
-      console.error(e);
+      toast.error("There was an error fetching your delivery location. Please contact us!");
     }
   };
 
@@ -69,8 +105,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
             <label className="block text-sm font-medium text-foreground mb-2">First Name *</label>
             <Input
               type="text"
-              value={orderData.firstName}
-              onChange={(e) => onUpdate({ firstName: e.target.value })}
+              value={orderData.delivery_info.firstName}
+              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, firstName: e.target.value } })}
               placeholder="John"
               className="w-full"
             />
@@ -79,8 +115,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
             <label className="block text-sm font-medium text-foreground mb-2">Last Name *</label>
             <Input
               type="text"
-              value={orderData.lastName}
-              onChange={(e) => onUpdate({ lastName: e.target.value })}
+              value={orderData.delivery_info.lastName}
+              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, lastName: e.target.value } })}
               placeholder="Doe"
               className="w-full"
             />
@@ -89,8 +125,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
             <label className="block text-sm font-medium text-foreground mb-2">Email *</label>
             <Input
               type="email"
-              value={orderData.email}
-              onChange={(e) => onUpdate({ email: e.target.value })}
+              value={orderData.delivery_info.email}
+              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, email: e.target.value } })}
               placeholder="john@example.com"
               className="w-full"
             />
@@ -99,8 +135,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
             <label className="block text-sm font-medium text-foreground mb-2">Phone *</label>
             <Input
               type="tel"
-              value={orderData.phone}
-              onChange={(e) => onUpdate({ phone: e.target.value })}
+              value={orderData.delivery_info.phone}
+              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, phone: e.target.value } })}
               placeholder="+44 7123 456789"
               className="w-full"
             />
@@ -115,8 +151,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
             <label className="block text-sm font-medium text-foreground mb-2">Address Line 1 *</label>
             <Input
               type="text"
-              value={orderData.address}
-              onChange={(e) => onUpdate({ address: e.target.value })}
+              value={orderData.delivery_info.address}
+              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, address: e.target.value } })}
               placeholder="123 Main Street"
               className="w-full"
             />
@@ -125,8 +161,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
               <label className="block text-sm font-medium text-foreground mb-2">Address Line 2 *</label>
               <Input
                 type="text"
-                value={orderData.address2}
-                onChange={(e) => onUpdate({ address2: e.target.value })}
+                value={orderData.delivery_info.address2}
+                onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, address2: e.target.value } })}
                 placeholder="Building, floor, etc."
                 className="w-full"
               />
@@ -135,8 +171,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
               <label className="block text-sm font-medium text-foreground mb-2">Address Line 3</label>
               <Input
                 type="text"
-                value={orderData.address3}
-                onChange={(e) => onUpdate({ address3: e.target.value })}
+                value={orderData.delivery_info.address3}
+                onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, address3: e.target.value } })}
                 placeholder=""
                 className="w-full"
               />
@@ -146,8 +182,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
               <label className="block text-sm font-medium text-foreground mb-2">City *</label>
               <Input
                 type="text"
-                value={orderData.city}
-                onChange={(e) => onUpdate({ city: e.target.value })}
+                value={orderData.delivery_info.city}
+                onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, city: e.target.value } })}
                 placeholder="Diss"
                 className="w-full"
               />
@@ -156,8 +192,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
               <label className="block text-sm font-medium text-foreground mb-2">Post Code *</label>
               <Input
               type="text"
-              value={orderData.zipCode}
-              onChange={(e) => onUpdate({ zipCode: e.target.value })}
+              value={orderData.delivery_info.zipCode}
+              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, zipCode: e.target.value } })}
               onBlur={(e) => checkPostCode(e.target.value)}
               placeholder="IP25 1AA"
               className="w-full"

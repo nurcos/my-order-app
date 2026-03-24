@@ -5,8 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Image from "next/image";
-import { pb } from "@/lib/pb";
-import { on } from "events";
 
 
 export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderData: OrderData; menuItems: MenuItem[]; addToCart: (item: CartItem) => void; onUpdate: (updates: Partial<OrderData>) => void; }) {

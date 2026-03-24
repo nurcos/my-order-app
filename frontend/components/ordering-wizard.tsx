@@ -13,6 +13,7 @@ import Image from "next/image";
 import { OrderComplete } from "./steps/order-complete";
 import { pb } from "@/lib/pb";
 import { toast } from 'react-toastify';
+import { sub } from "date-fns";
 
 export interface Restaurant {
   id: string;
@@ -54,15 +55,17 @@ export interface OrderData {
   cartItems: CartItem[];
 
   // Step 3: Customer & Delivery info
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: string;
-  address2: string;
-  address3: string;
-  city: string;
-  zipCode: string;
+  delivery_info: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: string;
+    address2: string;
+    address3: string;
+    city: string;
+    zipCode: string;
+  };
   subtotal: number;
   deliveryTime: string;
   deliveryDistanceMiles: number;
@@ -91,15 +94,17 @@ export function OrderingWizard({
   const [orderData, setOrderData] = useState<OrderData>({
     restaurant: selectedRestaurant ? selectedRestaurant : (null as any),
     cartItems: [],
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
-    address2: "",
-    address3: "",
-    city: "",
-    zipCode: "",
+    delivery_info: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      address: "",
+      address2: "",
+      address3: "",
+      city: "",
+      zipCode: "",
+    },
     subtotal: 0,
     deliveryTime: "asap",
     deliveryDistanceMiles: 0,
@@ -122,7 +127,7 @@ export function OrderingWizard({
     if (order) {
       try {
         const parsedOrder = JSON.parse(order);
-        setOrderData((prev) => ({ ...prev, id: parsedOrder.id, cartItems: parsedOrder.cartItems ?? [] }));
+        setOrderData((prev) => ({ ...prev, id: parsedOrder.id, cartItems: parsedOrder.cartItems ?? [], subtotal: parsedOrder.subtotal ?? 0 }));
       } catch (e) {
         localStorage.removeItem("order");
       }
@@ -132,7 +137,7 @@ export function OrderingWizard({
     // create a new order record with no data (empty object is fine)
     pb.post("orders", {})
       .then((res) => {
-        localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [] }));
+        localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [], subtotal: 0 }));
         setOrderData((prev) => ({ ...prev, id: res.id }));
       })
       .catch((err) => {
@@ -148,7 +153,6 @@ export function OrderingWizard({
           ? data
           : data.items || data.records || [];
         setMenuItems((prev) => [...prev, ...list]);
-        console.log("Menu items fetched:", list);
       })
       .catch((err: any) => setError(err.message))
       .finally(() => {
@@ -169,7 +173,7 @@ export function OrderingWizard({
         cartItems: [...prev.cartItems, item],
         subtotal: res.subtotal || 0
       }));
-      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item] }));
+      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item], subtotal: res.subtotal || 0 }));
     }).catch((error) => {
       console.error("Error adding item to order:", error);
     });
@@ -189,7 +193,7 @@ export function OrderingWizard({
         cartItems: prev.cartItems.filter((_, i) => i !== index),
         subtotal: res.subtotal || 0
       }));
-      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item] }));
+      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: orderData.cartItems.filter((_, i) => i !== index) }));
     }).catch((error) => {
       console.error("Error removing item from order:", error);
     });
@@ -207,6 +211,19 @@ export function OrderingWizard({
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    if (currentStep === 3 ) {
+      if(!orderData.id) return;
+      pb.update("orders", orderData.id, {
+        delivery_info: JSON.stringify(orderData.delivery_info),
+      }).catch((error) => {
+        console.error("Error adding item to order:", error);
+      });
+    }
+
+    if (currentStep === 4) {
+      console.log('now we update order delivery fee')
     }
 
     if (currentStep === 6) {
@@ -330,13 +347,13 @@ export function OrderingWizard({
                   className={`px-8 bg-white text-primary
                     ${
                       currentStep === 3 &&
-                      orderData.firstName &&
-                      orderData.lastName &&
-                      orderData.email &&
-                      orderData.phone &&
-                      orderData.address &&
-                      orderData.address2 &&
-                      orderData.city &&
+                      orderData.delivery_info.firstName &&
+                      orderData.delivery_info.lastName &&
+                      orderData.delivery_info.email &&
+                      orderData.delivery_info.phone &&
+                      orderData.delivery_info.address &&
+                      orderData.delivery_info.address2 &&
+                      orderData.delivery_info.city &&
                       orderData.deliveryTime &&
                       orderData.deliveryDistanceMiles <= 0
                         ? "opacity-50 cursor-not-allowed"

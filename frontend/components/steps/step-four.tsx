@@ -41,7 +41,7 @@ export function StepFour({ orderData, menuItems }: StepFourProps) {
                     </>
                   )}
                   <div className="font-bold text-primary pt-1 mt-1 text-right text-right">
-                    £{item.price.toFixed(2)}
+                    £{item.variant.base_price.toFixed(2)}
                   </div>
               </div>
             ))}
@@ -56,19 +56,19 @@ export function StepFour({ orderData, menuItems }: StepFourProps) {
           <div>
             <p className="text-muted-foreground">Name</p>
             <p className="font-semibold">
-              {orderData.firstName} {orderData.lastName}
+              {orderData.delivery_info.firstName} {orderData.delivery_info.lastName}
             </p>
           </div>
           <div>
             <p className="text-muted-foreground">Address</p>
             <p className="font-semibold">
-              {orderData.address}, {orderData.address2}, {orderData.address3}, {orderData.city} {orderData.zipCode}
+              {orderData.delivery_info.address}, {orderData.delivery_info.address2}, {orderData.delivery_info.address3}, {orderData.delivery_info.city} {orderData.delivery_info.zipCode}
             </p>
           </div>
           <div>
             <p className="text-muted-foreground">Contact</p>
             <p className="font-semibold">
-              {orderData.email} • {orderData.phone}
+              {orderData.delivery_info.email} • {orderData.delivery_info.phone}
             </p>
           </div>
         </div>

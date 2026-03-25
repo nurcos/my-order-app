@@ -4,6 +4,7 @@ import type { OrderData, MenuItem, CartItem} from "../ordering-wizard"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import Image from "next/image";
 
 interface StepTwoProps {
   orderData: OrderData
@@ -18,12 +19,17 @@ export function StepTwo({ orderData, menuItems, addToCart, onUpdate }: StepTwoPr
     (menuItems || []).forEach((m: MenuItem) => { map[m.id] = 1 });
     return map;
   });
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const setQty = (id: string, qty: number) => {
     setQuantities((prev) => ({ ...prev, [id]: Math.max(1, Math.floor(qty)) }));
   };
 
   const addItemToCart = (item: MenuItem, qty: number) => {
+    if(!item) return;
+
+    setAddingToCart(true);
+
     var cartItem: CartItem | null = null;
 
     for (let i = 0; i < qty; i++) {
@@ -40,6 +46,10 @@ export function StepTwo({ orderData, menuItems, addToCart, onUpdate }: StepTwoPr
 
     // reset qty for item to 1
     setQty(item.id, 1);
+
+    setTimeout(() => {
+      setAddingToCart(false);
+    }, 500);
   };
 
   return (
@@ -91,7 +101,16 @@ export function StepTwo({ orderData, menuItems, addToCart, onUpdate }: StepTwoPr
                       </button>
                     </div>
 
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-2 mt-3 relative">
+                      {addingToCart && (
+                        <Image
+                          src={'/img/logo.png'}
+                          alt={"logo"}
+                          width={100}
+                          height={100}
+                          className="object-cover rounded-lg absolute left-1/2 transform -translate-x-1/2 opacity-50 animate-ping"
+                        />
+                      )}
                       <Button onClick={() => addItemToCart(item, qty)} className="bg-[#bb2f39] border-black border-2">
                         Add to cart
                       </Button>

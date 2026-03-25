@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Image from "next/image";
-import { ca } from "date-fns/locale";
 
 
 export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderData: OrderData; menuItems: MenuItem[]; addToCart: (item: CartItem) => void; onUpdate: (updates: Partial<OrderData>) => void; }) {
@@ -16,6 +15,7 @@ export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderDa
   const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const selectItem = (item: MenuItem | null) => {
     if (!item) return;
@@ -92,6 +92,8 @@ export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderDa
   const handleAddItem = () => {
     if (!currentItem) return;
 
+    setAddingToCart(true);
+
     var cartItem: CartItem = {
       cart_id: Math.random().toString(36).substr(2, 9),
       id: currentItem.id,
@@ -113,6 +115,9 @@ export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderDa
 
     addToCart(cartItem);
     closeModal();
+    setTimeout(() => {
+      setAddingToCart(false);
+    }, 500);
   };
 
   return (
@@ -301,7 +306,16 @@ export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderDa
         </div>
       )}
 
-      <div className="bg-[#bb2f39]/5 p-4 rounded-lg border border-secondary">
+      <div className="bg-[#bb2f39]/5 p-4 rounded-lg border border-secondary relative">
+        {addingToCart && (
+          <Image
+            src={'/img/logo.png'}
+            alt={"logo"}
+            width={100}
+            height={100}
+            className="object-cover rounded-lg absolute left-1/2 transform -translate-x-1/2 opacity-50 animate-ping"
+          />
+        )}
         {currentItem && (
           <p className="text-3xl font-bold text-primary mb-4">
             £{currentItem.expand.variants?.[0]?.base_price?.toFixed(2) || "0.00"}

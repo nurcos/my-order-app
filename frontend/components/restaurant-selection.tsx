@@ -68,7 +68,7 @@ export function RestaurantSelection({ onSelectRestaurant, onBack }: RestaurantSe
           {restaurants.map((restaurant) => (
             <Card
               key={restaurant.id}
-              className="p-6 hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-primary"
+              className="p-6 transition-all cursor-pointer border-2 border-transparent"
             >
               <div className="space-y-4">
                 <div className="flex gap-1 justify-between">

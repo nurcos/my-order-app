@@ -7,7 +7,7 @@ import { useState } from "react";
 import Image from "next/image";
 
 
-export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderData: OrderData; menuItems: MenuItem[]; addToCart: (item: CartItem) => void; onUpdate: (updates: Partial<OrderData>) => void; }) {
+export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderData: OrderData; menuItems: MenuItem[]; addToCart: (items: Array<CartItem>) => void; onUpdate: (updates: Partial<OrderData>) => void; }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,9 +111,7 @@ export function StepOne({ orderData, menuItems, addToCart, onUpdate }: { orderDa
 
     cartItem.options = selectedOptions;
 
-    console.log(cartItem);
-
-    addToCart(cartItem);
+    addToCart([cartItem]);
     closeModal();
     setTimeout(() => {
       setAddingToCart(false);

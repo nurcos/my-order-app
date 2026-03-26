@@ -78,13 +78,23 @@ export async function PATCH(request: Request) {
     );
   }
 
-  // if updating orders with item_ids, recompute subtotal server-side
-  if (collection === "orders" && data.item_ids) {
-    const order = await pb.collection(collection).getOne(id);
-    if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    }
+  const order = await pb.collection("orders").getOne(id);
+  if (!order) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
 
+  //if order is already confirmed, prevent further updates
+  if (order.is_confirmed) {
+    const res = NextResponse.json(
+      { message: "Order has already been confirmed" },
+      { status: 400 }
+    );
+    console.log(res)
+    return res;
+  }
+
+  // if updating orders with item_ids, recompute subtotal server-side
+  if (data.item_ids) {
     const itemIds: string[] = JSON.parse(data.item_ids);
 
     // count how many times each id appears (this IS the quantity)
@@ -101,7 +111,6 @@ export async function PATCH(request: Request) {
           .collection("menu_item_variants")
           .getOne(uid)
           .catch(() => {
-            console.warn(`could not fetch menu_item_variant ${uid}`);
             return null;
           }),
       ),

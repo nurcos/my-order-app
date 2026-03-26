@@ -13,7 +13,6 @@ import Image from "next/image";
 import { OrderComplete } from "./steps/order-complete";
 import { pb } from "@/lib/pb";
 import { toast } from 'react-toastify';
-import { sub } from "date-fns";
 
 export interface Restaurant {
   id: string;
@@ -64,11 +63,13 @@ export interface OrderData {
     address2: string;
     address3: string;
     city: string;
-    zipCode: string;
+    postCode: string;
   };
   deliveryTime: string;
   deliveryDistanceMiles: number;
   deliveryCost: number;
+  is_confirmed: boolean;
+  paymentIntentId: string | null;
 }
 
 const STEPS = [
@@ -111,11 +112,13 @@ export function OrderingWizard({
       address2: "",
       address3: "",
       city: "",
-      zipCode: "",
+      postCode: "",
     },
     deliveryTime: "asap",
     deliveryDistanceMiles: 0,
     deliveryCost: 0,
+    is_confirmed: false,
+    paymentIntentId: null,
   });
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -141,16 +144,7 @@ export function OrderingWizard({
       return;
     }
 
-    // create a new order record with no data (empty object is fine)
-    pb.post("orders", {})
-      .then((res) => {
-        localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [] }));
-        setOrderData((prev) => ({ ...prev, id: res.id }));
-      })
-      .catch((err) => {
-        console.error("Error creating order:", err);
-        toast.error("Error creating order");
-      });
+    createOrder();
   }, []);
 
   useEffect(() => {
@@ -167,21 +161,36 @@ export function OrderingWizard({
       });
   }, []);
 
-  const addToCart = (item: CartItem) => { 
+  const createOrder = async () => {
+    // create a new order record with no data (empty object is fine)
+    setCurrentStep(1);
+    pb.post("orders", {})
+      .then((res) => {
+        localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [] }));
+        setOrderData((prev) => ({ ...prev, id: res.id }));
+      })
+      .catch((err) => {
+        console.error("Error creating order:", err);
+        toast.error("Error creating order");
+      });
+  };
+
+  const addToCart = (item: Array<CartItem>) => {
     if(!item || !orderData.id) return;
 
-    const order_ids = [...(orderData?.cartItems || []).map((ci) => ci.variant.id), item.variant.id];
+    const item_ids = [...(orderData?.cartItems || []).map((ci) => ci.variant.id), ...item.map((i) => i.variant.id)];
 
     pb.update("orders", orderData.id, {
-      item_ids: JSON.stringify(order_ids),
+      item_ids: JSON.stringify(item_ids),
     } ).then((res) => {
       setOrderData((prev) => ({
         ...prev,
-        cartItems: [...prev.cartItems, item],
+        cartItems: [...prev.cartItems, ...item],
       }));
-      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), item] }));
+      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [...(orderData.cartItems || []), ...item] }));
     }).catch((error) => {
-      console.error("Error adding item to order:", error);
+      console.log(error.message);
+      toast.error(error.message || "Error adding item to order");
     });
   };
 
@@ -200,14 +209,44 @@ export function OrderingWizard({
       }));
       localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: orderData.cartItems.filter((_, i) => i !== index) }));
     }).catch((error) => {
-      console.error("Error removing item from order:", error);
+      toast.error(error.message || "Error removing item from order");
+    });
+  };
+
+  const clearCart = () => {
+    if(!orderData.id) return;
+
+    setCurrentStep(1);
+
+    pb.update("orders", orderData.id, {
+      item_ids: JSON.stringify([]),
+    }).then((res) => {
+      setOrderData((prev) => ({
+        ...prev,
+        cartItems: [],
+      }));
+      localStorage.setItem("order", JSON.stringify({ id: orderData.id, cartItems: [] }));
+    }).catch((error) => {
+      toast.error(error.message || "Error clearing cart");
+      createOrder();
     });
   };
 
   const resetOrderData = () => {
     setOrderData((prev) => ({
       ...prev,
-      items: [],
+      cartItems: [],
+      delivery_info: {
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        address: "",
+        address2: "",
+        address3: "",
+        city: "",
+        postCode: "",
+      },
     }));
   };
 
@@ -226,13 +265,9 @@ export function OrderingWizard({
       });
     }
 
-    if (currentStep === 4) {
-      console.log('now we update order delivery fee')
-    }
-
     if (currentStep === 6) {
-      // Finalize order here if needed
       resetOrderData();
+      createOrder();
       setCurrentStep(1);
     }
   };
@@ -257,11 +292,11 @@ export function OrderingWizard({
       case 3:
         return <StepThree orderData={orderData} menuItems={menuItems} onUpdate={handleUpdateOrder} />;
       case 4:
-        return <StepFour orderData={orderData} menuItems={menuItems} />;
+        return <StepFour orderData={orderData} />;
       case 5:
-        return <StepFive handleNext={handleNext} orderData={orderData} />;
+        return <StepFive orderData={orderData} onUpdate={handleUpdateOrder} handleNext={handleNext} />;
       case 6:
-        return <OrderComplete orderData={orderData} />;
+        return <OrderComplete orderData={orderData} handleNext={handleNext} />;
       default:
         return null;
     }
@@ -346,23 +381,41 @@ export function OrderingWizard({
                 <Button
                   onClick={handleNext}
                   disabled={
-                    currentStep === 3 && orderData.deliveryDistanceMiles <= 0
-                  }
-                  className={`px-8 bg-white text-primary
-                    ${
-                      currentStep === 3 &&
-                      orderData.delivery_info.firstName &&
-                      orderData.delivery_info.lastName &&
-                      orderData.delivery_info.email &&
-                      orderData.delivery_info.phone &&
-                      orderData.delivery_info.address &&
-                      orderData.delivery_info.address2 &&
-                      orderData.delivery_info.city &&
-                      orderData.deliveryTime &&
+                    currentStep === 3 &&
+                    (
+                      !orderData.delivery_info.firstName ||
+                      !orderData.delivery_info.lastName ||
+                      !orderData.delivery_info.email ||
+                      !orderData.delivery_info.email.toLowerCase().match(
+                        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                      ) ||
+                      !orderData.delivery_info.phone ||
+                      !orderData.delivery_info.address ||
+                      !orderData.delivery_info.address2 ||
+                      !orderData.delivery_info.city ||
+                      !orderData.deliveryTime ||
                       orderData.deliveryDistanceMiles <= 0
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-[#bb2f39]/90"
-                    }`}
+                    )
+                  }
+                  className={`px-8 bg-white text-primary ${
+                    currentStep === 3 &&
+                    (
+                      !orderData.delivery_info.firstName ||
+                      !orderData.delivery_info.lastName ||
+                      !orderData.delivery_info.email ||
+                      !orderData.delivery_info.email.toLowerCase().match(
+                        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                      ) ||
+                      !orderData.delivery_info.phone ||
+                      !orderData.delivery_info.address ||
+                      !orderData.delivery_info.address2 ||
+                      !orderData.delivery_info.city ||
+                      !orderData.deliveryTime ||
+                      orderData.deliveryDistanceMiles <= 0
+                    )
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-[#bb2f39]/90"
+                  }`}
                 >
                   Next →
                 </Button>
@@ -375,6 +428,7 @@ export function OrderingWizard({
               <CartSidebar
                 removeItemFromOrder={removeItemFromOrder}
                 orderData={orderData}
+                clearCart={clearCart}
               />
             </div>
           )}

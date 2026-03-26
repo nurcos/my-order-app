@@ -5,10 +5,9 @@ import { Card } from "@/components/ui/card"
 
 interface StepFourProps {
   orderData: OrderData
-  menuItems: MenuItem[]
 }
 
-export function StepFour({ orderData, menuItems }: StepFourProps) {
+export function StepFour({ orderData }: StepFourProps) {
 
   return (
     <div className="space-y-6">
@@ -63,7 +62,7 @@ export function StepFour({ orderData, menuItems }: StepFourProps) {
           <div>
             <p className="text-muted-foreground">Address</p>
             <p className="font-semibold">
-              {orderData.delivery_info.address}, {orderData.delivery_info.address2}, {orderData.delivery_info.address3}, {orderData.delivery_info.city} {orderData.delivery_info.zipCode}
+              {orderData.delivery_info.address}, {orderData.delivery_info.address2}, {orderData.delivery_info.address3}, {orderData.delivery_info.city} {orderData.delivery_info.postCode}
             </p>
           </div>
           <div>

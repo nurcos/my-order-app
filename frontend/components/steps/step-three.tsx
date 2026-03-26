@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react"
 import { toast } from 'react-toastify';
 
 
-export function StepThree({ orderData, onUpdate, menuItems }: { orderData: OrderData; menuItems: MenuItem[]; onUpdate: (updates: Partial<OrderData>) => void; }) {
+export function StepThree({ orderData, onUpdate }: { orderData: OrderData; menuItems: MenuItem[]; onUpdate: (updates: Partial<OrderData>) => void; }) {
 
   const fetchedOrderRef = useRef(false);
 
@@ -17,16 +17,16 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
     fetchedOrderRef.current = true;
     pb.get("orders", orderData.id)
       .then((res) => {
-        if (res) {
+        if (res && res.delivery_info) {
           onUpdate({
             delivery_info: res.delivery_info,
           });
-          checkPostCode(res.delivery_info.zipCode);
+          checkPostCode(res.delivery_info.postCode);
         }
       })
       .catch((err) => {
         console.error("Failed to fetch order", err);
-      });
+    });
   }, [orderData.id, onUpdate]);
 
   // call /api/distance with both postcodes (customer + restaurant) and update orderData
@@ -50,7 +50,6 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
     if (restaurantRaw) {
       const cleanedRestaurant = restaurantRaw.toUpperCase().replace(/\s+/g, "");
       if (!postcodeRegex.test(cleanedRestaurant)) {
-        console.warn("Invalid UK restaurant postcode:", restaurantRaw);
         return;
       }
     }
@@ -191,8 +190,8 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
               <label className="block text-sm font-medium text-foreground mb-2">Post Code *</label>
               <Input
               type="text"
-              value={orderData.delivery_info.zipCode}
-              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, zipCode: e.target.value } })}
+              value={orderData.delivery_info.postCode}
+              onChange={(e) => onUpdate({ delivery_info: { ...orderData.delivery_info, postCode: e.target.value } })}
               onBlur={(e) => checkPostCode(e.target.value)}
               placeholder="IP25 1AA"
               className="w-full"
@@ -250,7 +249,7 @@ export function StepThree({ orderData, onUpdate, menuItems }: { orderData: Order
 
       <Card className="bg-blue-50 p-4 border border-blue-200">
         <p className="text-sm text-blue-900">
-          ℹ️ Your information is secure and will only be used for delivery purposes.
+          ℹ️ Your information is secure.
         </p>
       </Card>
     </div>

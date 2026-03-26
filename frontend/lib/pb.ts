@@ -1,7 +1,6 @@
 export const pb = {
   async get(collectionName: string, id?: string, expandParams?: string) {
     const qs = `collection=${encodeURIComponent(collectionName)}${id ? `&id=${encodeURIComponent(id)}` : ""}${expandParams ? "&expand=" + encodeURIComponent(expandParams) : ""}`;
-    console.log(qs)
     const res = await fetch(`/api/pb?${qs}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`Failed (${res.status})`);
     return res.json();
@@ -18,12 +17,15 @@ export const pb = {
   },
 
   async update(collectionName: string, id: string, body: Record<string, any>) {
-    const res = await fetch(`/api/pb`, {
+    const res: any = await fetch(`/api/pb`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ collection: collectionName, id, data: body }),
     });
-    if (!res.ok) throw new Error(`Failed (${res.status})`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err?.error ?? err?.message ?? `Failed (${res.status})`);
+    }
     return res.json();
   },
 

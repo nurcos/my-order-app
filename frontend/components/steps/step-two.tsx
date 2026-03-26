@@ -9,7 +9,7 @@ import Image from "next/image";
 interface StepTwoProps {
   orderData: OrderData
   menuItems: MenuItem[]
-  addToCart: (item: CartItem) => void
+  addToCart: (items: Array<CartItem>) => void
   onUpdate: (updates: Partial<OrderData>) => void
 }
 
@@ -30,10 +30,10 @@ export function StepTwo({ orderData, menuItems, addToCart, onUpdate }: StepTwoPr
 
     setAddingToCart(true);
 
-    var cartItem: CartItem | null = null;
+    var cartItems: CartItem[] = [];
 
     for (let i = 0; i < qty; i++) {
-      cartItem = {
+      const cartItem = {
         cart_id: Math.random().toString(36).substr(2, 9),
         id: item.id,
         name: item.name,
@@ -41,8 +41,10 @@ export function StepTwo({ orderData, menuItems, addToCart, onUpdate }: StepTwoPr
         options: [],
         quantity: 1,
       };
-      addToCart(cartItem);
+      cartItems.push(cartItem);
     }
+
+    addToCart(cartItems);
 
     // reset qty for item to 1
     setQty(item.id, 1);

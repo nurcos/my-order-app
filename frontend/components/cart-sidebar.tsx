@@ -1,5 +1,6 @@
 "use client"
 
+import { clear } from "console"
 import type { OrderData, CartItem } from "./ordering-wizard"
 import { getCartTotal } from "./ordering-wizard"
 
@@ -8,9 +9,10 @@ import { Card } from "@/components/ui/card"
 interface CartSidebarProps {
   orderData: OrderData
   removeItemFromOrder: (item: CartItem, index: number) => void
+  clearCart: () => void
 }
 
-export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps) {
+export function CartSidebar({ removeItemFromOrder, orderData, clearCart }: CartSidebarProps) {
   const isEmpty = orderData.cartItems.length === 0
 
   return (
@@ -71,6 +73,19 @@ export function CartSidebar({ removeItemFromOrder, orderData }: CartSidebarProps
                 <span className="font-bold text-foreground">Subtotal</span>
                 <span className="text-2xl font-bold text-primary">£{getCartTotal(orderData.cartItems).toFixed(2)}</span>
               </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="mt-3 px-3 py-1 text-sm font-semibold text-red-600 border border-red-200 rounded hover:bg-red-50"
+                onClick={() => {
+                  clearCart();
+                }}
+                disabled={orderData.cartItems.length === 0}
+              >
+                Clear cart
+              </button>
             </div>
           </div>
         )}

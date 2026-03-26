@@ -23,15 +23,8 @@ Run migrate collections to create a new migration mirroring the current collecti
 
 
 
-to do:
-
-connect stripe
-check if store is open/store open hours
-
-
-checkout endpoint:
-check store open
-check delivery cost
-add error popups
+# to do
 email confirmation
-show added to cart animation
+upload to server
+add error popups
+migrate to app builds

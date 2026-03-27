@@ -38,8 +38,24 @@ export async function POST(req: Request) {
     );
   }
 
-  await mailCustomer({ order, restaurant, cart_items });
-  await mailRestaurant({ order, restaurant, cart_items });
+ 	const mailCustomerResult = await mailCustomer({ order, restaurant, cart_items });
+  const mailRestaurantResult = await mailRestaurant({ order, restaurant, cart_items });
+
+	if (!mailCustomerResult.ok) {
+		return NextResponse.json(
+			{ error: "Error sending confirmation email to customer" },
+			{ status: 500 },
+		);
+	}
+
+	if (!mailRestaurantResult.ok) {
+		return NextResponse.json(
+			{ error: "Error sending confirmation email to restaurant" },
+			{ status: 500 },
+		);
+	}
+
+	return NextResponse.json({ success: true });
 }
 
 async function mailCustomer(data: any) {
@@ -131,12 +147,11 @@ async function mailCustomer(data: any) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("Error sending confirmation email:", error);
+		return NextResponse.json(
+			{ error: "Error sending confirmation email" },
+			{ status: 500 },
+		);
   }
-  return NextResponse.json(
-    { error: "Error sending confirmation email" },
-    { status: 500 },
-  );
 }
 
 async function mailRestaurant(data: any) {
@@ -241,10 +256,9 @@ async function mailRestaurant(data: any) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("Error sending confirmation email:", error);
+		return NextResponse.json(
+			{ error: "Error sending confirmation email" },
+			{ status: 500 },
+		);
   }
-  return NextResponse.json(
-    { error: "Error sending confirmation email" },
-    { status: 500 },
-  );
 }

@@ -197,7 +197,7 @@ export function StepThree({ orderData, onUpdate }: { orderData: OrderData; menuI
               className="w-full"
               />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-foreground mb-2">Delivery Time *</label>
               <select
                 value={orderData.deliveryTime}
@@ -242,7 +242,7 @@ export function StepThree({ orderData, onUpdate }: { orderData: OrderData; menuI
                   </option>
                 
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isOpen } from "../../../lib/utils";
+import { fetchOrder, fetchRestaurant } from "../../../lib/pb-server";
 import Stripe from "stripe";
 
 const BASE_URL = process.env.POCKETBASE_URL || "http://localhost:8090";
@@ -11,36 +11,6 @@ const stripe = new Stripe(STRIPE_SECRET);
 
 function toPence(amount: number) {
   return Math.round(amount * 100);
-}
-
-async function fetchOrder(orderId: string) {
-  const res = await fetch(
-    `${BASE_URL}/api/collections/orders/records/${encodeURIComponent(orderId)}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "X-App-Secret": ADMIN_TOKEN,
-      },
-      cache: "no-store",
-    }
-  );
-  if (!res.ok) throw new Error(`Failed to fetch order (${res.status})`);
-  return res.json();
-}
-
-async function fetchRestaurant(restaurantId: string) {
-  const res = await fetch(
-    `${BASE_URL}/api/collections/stores/records/${encodeURIComponent(restaurantId)}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "X-App-Secret": ADMIN_TOKEN,
-      },
-      cache: "no-store",
-    }
-  );
-  if (!res.ok) throw new Error(`Failed to fetch restaurant (${res.status})`);
-  return res.json();
 }
 
 async function updateOrder(orderId: string, data: Record<string, any>) {
@@ -132,22 +102,6 @@ export async function POST(req: Request) {
     await updateOrder(order.id, {
       payment_id: paymentIntent.id,
     });
-
-    const emailRes = await fetch(`${SITE_URL}/api/confirmEmail`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        order,
-        restaurant,
-        cart_items
-      }),
-    });
-
-    console.log(emailRes)
-
-    if (!emailRes.ok) {
-      console.error('Error sending confirmation email:', await emailRes.text());
-    }
 
     // 6) return client secret to frontend so it can confirm payment
     return NextResponse.json({

@@ -164,7 +164,7 @@ export function OrderingWizard({
   const createOrder = async () => {
     // create a new order record with no data (empty object is fine)
     setCurrentStep(1);
-    pb.post("orders", {})
+    pb.post("orders", {restaurant: orderData.restaurant.id})
       .then((res) => {
         localStorage.setItem("order", JSON.stringify({ id: res.id, cartItems: [] }));
         setOrderData((prev) => ({ ...prev, id: res.id }));

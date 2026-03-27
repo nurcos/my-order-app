@@ -92,6 +92,17 @@ function PaymentForm({ orderData, onUpdate, handleNext }: { orderData: OrderData
           is_confirmed: true,
         });
 
+        //payment successful, send emails
+        await fetch("/api/confirmEmail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            order_id: orderData.id,
+            restaurant_id: orderData.restaurant.id,
+            cart_items: orderData.cartItems,
+          }),
+        });
+
         handleNext();
       } else {
         toast.error("Payment not completed. Please try again.");

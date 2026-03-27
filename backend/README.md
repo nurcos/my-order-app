@@ -24,7 +24,8 @@ Run migrate collections to create a new migration mirroring the current collecti
 
 
 # to do
-email confirmation
 upload to server
-add error popups
 migrate to app builds
+
+# after more restaurants
+we need to fix cart creations

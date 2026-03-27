@@ -36,5 +36,5 @@ next-env.d.ts
 /frontend/android
 /frontend/ios
 
-/backend/pb_migrations
 /backend/pb_data
+/backend/pb_migrations_old

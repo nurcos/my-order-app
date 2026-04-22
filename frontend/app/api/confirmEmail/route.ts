@@ -140,9 +140,15 @@ async function mailCustomer(data: any) {
 			`,
     };
 
-    const res = await axios.post(
+    const res = await fetch(
       "https://api.smtp2go.com/v3/email/send",
-      payload,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
     );
 
     return NextResponse.json({ success: true }, { status: 200 });
@@ -249,10 +255,13 @@ async function mailRestaurant(data: any) {
 			`,
     };
 
-    const res = await axios.post(
-      "https://api.smtp2go.com/v3/email/send",
-      payload,
-    );
+    const res = await fetch("https://api.smtp2go.com/v3/email/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

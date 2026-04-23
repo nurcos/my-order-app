@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
 import { fetchOrder, fetchRestaurant } from "@/lib/pb-server";
 
 export async function POST(req: Request) {
